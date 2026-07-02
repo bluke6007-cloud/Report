@@ -32,7 +32,7 @@
     --base-grey:#8A8F98;
   }
   *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;height:100%;}
   body{
     background:var(--paper);
     color:var(--ink);
@@ -46,17 +46,18 @@
   .app{
     display:grid;
     grid-template-columns:400px 1fr;
-    min-height:100vh;
+    height:100vh;
+    overflow:hidden;
   }
   @media (max-width:900px){
-    .app{grid-template-columns:1fr;}
+    .app{grid-template-columns:1fr; height:auto; overflow:visible;}
   }
 
   /* ---------- Form panel ---------- */
   .form-panel{
     background:var(--panel);
     border-right:1px solid var(--line);
-    padding:28px 26px 100px;
+    padding:28px 26px 0;
     overflow-y:auto;
     max-height:100vh;
   }
@@ -199,9 +200,14 @@
   .btn-row{
     position:sticky;
     bottom:0;
-    background:linear-gradient(to top, var(--panel) 70%, transparent);
-    padding-top:24px;
-    margin-top:10px;
+    left:0;
+    right:0;
+    width:calc(100% + 52px);
+    margin:30px -26px 0;
+    padding:20px 26px 26px;
+    background:#E7E8EE;
+    border-top:1px solid var(--line);
+    box-shadow:0 -12px 24px -8px rgba(20,20,30,.08);
   }
   .btn{
     width:100%;
@@ -505,21 +511,6 @@
   /* ---------- Shared / view-only mode ---------- */
   .view-mode .app{grid-template-columns:1fr;}
   .view-mode .form-panel{display:none;}
-  .view-banner{
-    max-width:794px;
-    margin:0 auto 16px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:13px 18px;
-    font-size:12.5px;
-    color:var(--muted);
-  }
-  .view-banner a{color:var(--signal); font-weight:700; text-decoration:none;}
   .view-error{
     max-width:794px;
     margin:0 auto 16px;
@@ -761,10 +752,6 @@
 
   <!-- ===================== PREVIEW PANEL ===================== -->
   <div class="preview-panel">
-    <div class="view-banner" id="viewBanner" style="display:none;">
-      <span>You're viewing a shared CRO report.</span>
-      <a href="javascript:void(0)" id="newReportLink">Build your own report →</a>
-    </div>
     <div class="page" id="reportPage">
       <div class="rpt-header rpt-card">
         <div>
@@ -1370,10 +1357,6 @@
     const match = window.location.hash.match(/^#r=(.+)/);
     if(!match) return;
     document.body.classList.add('view-mode');
-    $('viewBanner').style.display = 'flex';
-    $('newReportLink').addEventListener('click', () => {
-      window.location.href = window.location.pathname + window.location.search;
-    });
     try{
       const data = await decodeReportData(match[1]);
       applyReportData(data);
