@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRO Report Builder</title>
+<meta name="description" content="Hypothesis, results, screenshots and what's next — view the full live CRO test report.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CRO Test Report">
+<meta property="og:description" content="Hypothesis, results, screenshots and what's next — view the full live report.">
+<meta property="og:image" content="og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CRO Test Report">
+<meta name="twitter:description" content="Hypothesis, results, screenshots and what's next — view the full live report.">
+<meta name="twitter:image" content="og-card.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15171C;
+    --paper:#F1F2F6;
+    --panel:#FFFFFF;
+    --line:#E4E5EB;
+    --muted:#6B6F79;
+    --signal:#3956E8;
+    --signal-dim:#E7ECFE;
+    --win:#1E8E52;
+    --win-dim:#E1F5E9;
+    --lose:#D64545;
+    --lose-dim:#FBEAEA;
+    --run:#E8A33D;
+    --run-dim:#FCF2E2;
+    --base-grey:#8A8F98;
+  }
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Inter',sans-serif; font-weight:800;}
+
+  /* ---------- App shell ---------- */
+  .app{
+    display:grid;
+    grid-template-columns:400px 1fr;
+    min-height:100vh;
+  }
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Form panel ---------- */
+  .form-panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:28px 26px 100px;
+    overflow-y:auto;
+    max-height:100vh;
+  }
+  @media (max-width:900px){ .form-panel{max-height:none;border-right:none;border-bottom:1px solid var(--line);} }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .brand-mark{
+    width:22px;height:22px;
+    border-radius:5px;
+    background:linear-gradient(135deg,var(--signal) 0 50%, var(--win) 50% 100%);
+    flex-shrink:0;
+  }
+  .brand-name{
+    font-size:13px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+  }
+  .form-panel h1{
+    display:none;
+  }
+
+  .section{
+    margin-top:30px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+  }
+  .section:first-of-type{border-top:none;margin-top:22px;padding-top:0;}
+  .section-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:600;
+    margin-bottom:14px;
+  }
+
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:16px;}
+  .hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4;}
+
+  input[type=text], input[type=date], textarea, select{
+    width:100%;
+    border:1px solid var(--line);
+    background:#FBFBFC;
+    border-radius:9px;
+    padding:9px 11px;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    color:var(--ink);
+    resize:vertical;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--signal);
+    box-shadow:0 0 0 3px var(--signal-dim);
+  }
+  textarea{min-height:74px; line-height:1.5;}
+  select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6F76'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:30px;}
+
+  .status-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .status-pill{
+    flex:1;
+    min-width:96px;
+    text-align:center;
+    padding:8px 6px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    font-size:11.5px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--muted);
+    background:#FBFBFC;
+    transition:all .15s ease;
+  }
+  .status-pill.active[data-status="win"]{background:var(--win-dim); border-color:var(--win); color:var(--win);}
+  .status-pill.active[data-status="lose"]{background:var(--lose-dim); border-color:var(--lose); color:var(--lose);}
+  .status-pill.active[data-status="run"]{background:var(--run-dim); border-color:var(--run); color:#946018;}
+  .status-pill.active[data-status="inconclusive"]{background:#EEEEEC; border-color:var(--base-grey); color:var(--ink);}
+
+  .variant-block{
+    background:#FBFBFC;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .variant-block.base{border-color:var(--signal-dim); box-shadow:inset 3px 0 0 var(--signal);}
+  .variant-block.variant{border-color:var(--win-dim); box-shadow:inset 3px 0 0 var(--win);}
+  .variant-block .vb-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:700;
+    margin-bottom:12px;
+    color:var(--ink);
+  }
+
+  .upload{
+    border:1.5px dashed var(--line);
+    border-radius:8px;
+    padding:14px;
+    text-align:center;
+    cursor:pointer;
+    background:#fff;
+    font-size:12px;
+    color:var(--muted);
+    transition:border-color .15s ease, background .15s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .upload:hover{border-color:var(--signal); background:var(--signal-dim);}
+  .upload input{position:absolute; inset:0; opacity:0; cursor:pointer;}
+  .upload.has-image{padding:0; border-style:solid;}
+  .upload.has-image img{width:100%; display:block; max-height:120px; object-fit:cover;}
+  .upload-clear{
+    display:none;
+    font-size:11px;
+    color:var(--lose);
+    margin-top:6px;
+    cursor:pointer;
+    text-align:right;
+    text-decoration:underline;
+  }
+
+  .btn-row{
+    position:sticky;
+    bottom:0;
+    background:linear-gradient(to top, var(--panel) 70%, transparent);
+    padding-top:24px;
+    margin-top:10px;
+  }
+  .btn{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-primary:hover{background:#000;}
+  .btn-ghost{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+    margin-top:8px;
+    font-size:12px;
+    font-weight:500;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-ghost:hover{border-color:var(--lose); color:var(--lose);}
+
+  /* ---------- Preview panel ---------- */
+  .preview-panel{
+    padding:40px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    overflow-y:auto;
+  }
+  .page{
+    width:794px;
+    max-width:100%;
+    min-height:1123px;
+    background:var(--paper);
+    box-shadow:0 1px 3px rgba(0,0,0,.06), 0 12px 40px rgba(20,20,30,.08);
+    padding:48px 48px 56px;
+  }
+
+  /* Generic card used throughout the report */
+  .rpt-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:24px 28px;
+  }
+
+  .rpt-header.rpt-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:22px;
+  }
+  .rpt-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .rpt-title{
+    font-family:'Inter',sans-serif;
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-.01em;
+    line-height:1.15;
+    max-width:440px;
+    color:var(--ink);
+  }
+  .rpt-meta{
+    text-align:right;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.7;
+  }
+  .rpt-meta b{color:var(--ink); font-weight:700;}
+  .badge{
+    display:inline-block;
+    margin-top:10px;
+    padding:5px 12px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .badge.win{background:var(--win-dim); color:var(--win);}
+  .badge.lose{background:var(--lose-dim); color:var(--lose);}
+  .badge.run{background:var(--run-dim); color:#946018;}
+  .badge.inconclusive{background:#EEEEEC; color:var(--ink);}
+
+  .rpt-section{margin-bottom:22px;}
+  .rpt-section-head{margin-bottom:14px;}
+  .rpt-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .rpt-heading{
+    font-family:'Inter',sans-serif;
+    font-size:19px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .rpt-body{
+    font-size:13.5px;
+    line-height:1.65;
+    color:#3A3D45;
+    white-space:pre-wrap;
+  }
+  .rpt-body.empty{color:#AEB1B8; font-style:italic;}
+
+  .split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-top:2px;
+  }
+  .split-card{
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    background:var(--panel);
+  }
+  .split-card.base{border-color:var(--signal-dim);}
+  .split-card.variant{border-color:var(--win-dim);}
+  .split-card-head{
+    padding:14px 16px 0;
+  }
+  .split-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 11px;
+    border-radius:999px;
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .split-card.base .split-pill{background:var(--signal-dim); color:var(--signal);}
+  .split-card.variant .split-pill{background:var(--win-dim); color:var(--win);}
+  .split-img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
+    background:#EEEFF3;
+    display:block;
+    margin-top:12px;
+  }
+  .split-img-empty{
+    width:100%;
+    height:150px;
+    margin-top:12px;
+    background:repeating-linear-gradient(45deg,#F2F3F7,#F2F3F7 8px,#E7E8EE 8px,#E7E8EE 16px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10.5px;
+    color:#A6A9B2;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .split-card-body{padding:14px 16px 16px;}
+  .split-card-desc{font-size:12.5px; line-height:1.55; color:#3A3D45; min-height:20px;}
+  .split-card-desc.empty{color:#AEB1B8; font-style:italic;}
+  .figma-link{
+    margin-top:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+    padding:6px 10px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:#FBFBFC;
+    word-break:break-all;
+  }
+  .figma-link svg{flex-shrink:0;}
+
+  .rpt-footer{
+    margin-top:26px;
+    padding:0 4px;
+    font-size:10.5px;
+    color:#9A9DA6;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  /* ---------- Traffic stat table ---------- */
+  .stat-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:16px;
+    font-size:12.5px;
+  }
+  .stat-table th{
+    text-align:left;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    padding:0 10px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .stat-table th:not(:first-child), .stat-table td:not(:first-child){text-align:right;}
+  .stat-table td{
+    padding:11px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .stat-table tr:last-child td{border-bottom:none;}
+  .stat-name{display:flex; align-items:center; gap:8px; font-weight:700;}
+  .stat-swatch{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .stat-swatch.base{background:var(--signal);}
+  .stat-swatch.variant{background:var(--win);}
+  .stat-rate{font-family:'JetBrains Mono',monospace;}
+  .stat-rate.up{color:var(--win);}
+  .stat-rate.down{color:var(--lose);}
+  .results-shot-wrap{margin-top:4px;}
+  .results-shot-wrap img, .results-img{width:100%; border-radius:10px; border:1px solid var(--line); display:block; height:auto; object-fit:contain;}
+  .results-shot-empty{
+    width:100%;
+    height:110px;
+    border-radius:10px;
+    background:repeating-linear-gradient(45deg,#F2F3F7,#F2F3F7 8px,#E7E8EE 8px,#E7E8EE 16px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10.5px;
+    color:#A6A9B2;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+
+  /* ---------- Next test grid ---------- */
+  .next-sub{margin-bottom:16px;}
+  .next-sub-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .next-test-imgs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+  }
+  .next-test-imgs img{width:100%; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--line); display:block;}
+  .next-test-imgs .split-img-empty{height:120px; border-radius:10px; margin-top:0;}
+
+  /* ---------- Image lightbox (click to enlarge) ---------- */
+  .split-img, .results-img, .next-test-imgs img{cursor:zoom-in; transition:opacity .15s ease;}
+  .split-img:hover, .results-img:hover, .next-test-imgs img:hover{opacity:.85;}
+  #lightbox{
+    position:fixed; inset:0; background:rgba(15,17,20,.86);
+    display:none; align-items:center; justify-content:center;
+    padding:5vw; z-index:999; cursor:zoom-out;
+  }
+  #lightbox.open{display:flex;}
+  #lightbox img{max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 24px 70px rgba(0,0,0,.45);}
+
+  /* ---------- Shareable link box ---------- */
+  #shareLinkBox input{font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+
+  /* ---------- Shared / view-only mode ---------- */
+  .view-mode .app{grid-template-columns:1fr;}
+  .view-mode .form-panel{display:none;}
+  .view-banner{
+    max-width:794px;
+    margin:0 auto 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 18px;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .view-banner a{color:var(--signal); font-weight:700; text-decoration:none;}
+  .view-error{
+    max-width:794px;
+    margin:0 auto 16px;
+    background:var(--lose-dim);
+    color:var(--lose);
+    border-radius:12px;
+    padding:14px 18px;
+    font-size:13px;
+    font-weight:600;
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;}
+    .form-panel, .toolbar-note{display:none !important;}
+    .app{display:block;}
+    .preview-panel{padding:0; display:block; background:var(--paper);}
+    .page{
+      box-shadow:none;
+      width:100%;
+      min-height:0;
+      padding:20px;
+    }
+    .split-card, .rpt-card, .rpt-section{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ===================== FORM PANEL ===================== -->
+  <div class="form-panel">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">CRO Report Builder</div>
+    </div>
+
+    <div class="section" style="margin-top:18px;">
+      <div class="section-label">Section 01 &middot; Test details</div>
+      <div class="field">
+        <label for="clientName">Client name</label>
+        <input type="text" id="clientName" placeholder="e.g. Northwind Retail">
+      </div>
+      <div class="field">
+        <label for="testName">Test name</label>
+        <input type="text" id="testName" placeholder="e.g. Checkout — Simplified Shipping Step">
+      </div>
+      <div class="field">
+        <label for="reportDate">Report date</label>
+        <input type="date" id="reportDate">
+      </div>
+      <div class="field">
+        <label>Result status</label>
+        <div class="status-row" id="statusRow">
+          <div class="status-pill" data-status="win">Winning</div>
+          <div class="status-pill" data-status="lose">Losing</div>
+          <div class="status-pill" data-status="inconclusive">Inconclusive</div>
+          <div class="status-pill active" data-status="run">Running</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 02 &middot; Hypothesis</div>
+      <div class="field">
+        <textarea id="hypothesis" placeholder="We believe that [change] for [audience] will result in [outcome] because [reasoning]."></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 03 &middot; Current situation</div>
+      <div class="field">
+        <textarea id="situation" placeholder="What the data/user research showed before this test — the problem being addressed."></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 04 &middot; Base &amp; variant</div>
+
+      <div class="variant-block base">
+        <div class="vb-title">Base (control)</div>
+        <div class="field">
+          <label for="baseDesc">Description</label>
+          <textarea id="baseDesc" placeholder="What the current, live version looks like and does."></textarea>
+        </div>
+        <div class="field">
+          <label>Screenshot</label>
+          <div class="upload" id="baseUploadWrap">
+            <span id="baseUploadLabel">Click or drop image</span>
+            <input type="file" accept="image/*" id="baseImage">
+          </div>
+          <div class="upload-clear" id="baseClear">Remove image</div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="baseFigma">Figma link</label>
+          <input type="text" id="baseFigma" placeholder="https://figma.com/file/...">
+        </div>
+      </div>
+
+      <div class="variant-block variant">
+        <div class="vb-title">Variant (new design)</div>
+        <div class="field">
+          <label for="variantDesc">Description</label>
+          <textarea id="variantDesc" placeholder="What changed and why, in concrete terms."></textarea>
+        </div>
+        <div class="field">
+          <label>Screenshot</label>
+          <div class="upload" id="variantUploadWrap">
+            <span id="variantUploadLabel">Click or drop image</span>
+            <input type="file" accept="image/*" id="variantImage">
+          </div>
+          <div class="upload-clear" id="variantClear">Remove image</div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="variantFigma">Figma link</label>
+          <input type="text" id="variantFigma" placeholder="https://figma.com/file/...">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 05 &middot; Results &amp; traffic</div>
+      <div class="hint" style="margin-top:-6px; margin-bottom:14px;">Enter the unique visitors and conversions for each variation — the report will calculate conversion rate and uplift automatically.</div>
+
+      <div class="variant-block base">
+        <div class="vb-title">Base traffic</div>
+        <div class="field" style="display:flex; gap:10px; margin-bottom:0;">
+          <div style="flex:1;">
+            <label for="baseVisitors">Unique visitors</label>
+            <input type="text" inputmode="numeric" id="baseVisitors" placeholder="24,569">
+          </div>
+          <div style="flex:1;">
+            <label for="baseConversions">Conversions</label>
+            <input type="text" inputmode="numeric" id="baseConversions" placeholder="4,797">
+          </div>
+        </div>
+      </div>
+
+      <div class="variant-block variant">
+        <div class="vb-title">Variant traffic</div>
+        <div class="field" style="display:flex; gap:10px; margin-bottom:0;">
+          <div style="flex:1;">
+            <label for="variantVisitors">Unique visitors</label>
+            <input type="text" inputmode="numeric" id="variantVisitors" placeholder="24,570">
+          </div>
+          <div style="flex:1;">
+            <label for="variantConversions">Conversions</label>
+            <input type="text" inputmode="numeric" id="variantConversions" placeholder="4,555">
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Results screenshot</label>
+        <div class="hint" style="margin-top:-2px; margin-bottom:8px;">e.g. the stats table from your testing tool showing which variation is winning.</div>
+        <div class="upload" id="resultsUploadWrap">
+          <span>Click or drop image</span>
+          <input type="file" accept="image/*" id="resultsImage">
+        </div>
+        <div class="upload-clear" id="resultsClear">Remove image</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 06 &middot; Insights &amp; outcomes</div>
+      <div class="field" style="margin-bottom:0;">
+        <textarea id="insights" placeholder="What the results tell us, why they happened, and what it means for the client's goals."></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 07 &middot; Next test</div>
+      <div class="field">
+        <label for="nextTestHypothesis">Hypothesis</label>
+        <textarea id="nextTestHypothesis" placeholder="We believe that [change] for [audience] will result in [outcome] because [reasoning]."></textarea>
+      </div>
+      <div class="field">
+        <label for="nextTestSituation">Current situation</label>
+        <textarea id="nextTestSituation" placeholder="What the data/user research shows now — the problem this next test addresses."></textarea>
+      </div>
+      <div class="field">
+        <label>Concept images</label>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <div class="upload" id="nextImage1Wrap">
+              <span>Image 1</span>
+              <input type="file" accept="image/*" id="nextImage1">
+            </div>
+            <div class="upload-clear" id="nextImage1Clear">Remove</div>
+          </div>
+          <div style="flex:1;">
+            <div class="upload" id="nextImage2Wrap">
+              <span>Image 2</span>
+              <input type="file" accept="image/*" id="nextImage2">
+            </div>
+            <div class="upload-clear" id="nextImage2Clear">Remove</div>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="nextTestFigma">Figma link</label>
+        <input type="text" id="nextTestFigma" placeholder="https://figma.com/file/...">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Section 08 &middot; Prepared by</div>
+      <div class="field" style="margin-bottom:0;">
+        <input type="text" id="preparedBy" placeholder="Your name / agency">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="shareBtn">
+        Generate shareable link
+      </button>
+      <div class="hint" style="text-align:center; margin-top:8px;">Bundles the whole report into one link — no account or server needed. We'll try to shorten it and it'll show a branded preview card when pasted into Slack, email, etc.</div>
+      <div id="shareLinkBox" style="display:none; margin-top:12px;">
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="shareLinkInput" readonly style="flex:1;">
+          <button class="btn btn-primary" id="copyLinkBtn" style="width:auto; padding:9px 14px; font-size:12px;">Copy</button>
+        </div>
+        <div class="hint" id="shareLinkWarn" style="display:none; color:var(--lose); margin-top:6px;">Couldn't shorten this one — it's long because of the attached screenshots (shorteners cap how much data a link can carry). It'll still work, but some chat apps or email clients may cut off very long links. If that happens, try removing an image or send the file directly.</div>
+      </div>
+      <button class="btn btn-ghost" id="printBtn">Export as PDF instead</button>
+      <button class="btn btn-ghost" id="resetBtn">Clear all fields</button>
+    </div>
+  </div>
+
+  <!-- ===================== PREVIEW PANEL ===================== -->
+  <div class="preview-panel">
+    <div class="view-banner" id="viewBanner" style="display:none;">
+      <span>You're viewing a shared CRO report.</span>
+      <a href="javascript:void(0)" id="newReportLink">Build your own report →</a>
+    </div>
+    <div class="page" id="reportPage">
+      <div class="rpt-header rpt-card">
+        <div>
+          <div class="rpt-eyebrow" id="pClient">Client name</div>
+          <div class="rpt-title" id="pTestName">Test name goes here</div>
+          <span class="badge run" id="pBadge">Running</span>
+        </div>
+        <div class="rpt-meta">
+          <div>Report date<br><b id="pDate">—</b></div>
+          <div style="margin-top:8px;">Prepared by<br><b id="pPrepared">—</b></div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 01 &middot; Hypothesis</div>
+        </div>
+        <div class="rpt-card">
+          <div class="rpt-body empty" id="pHypothesis">We believe that…</div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 02 &middot; Current situation</div>
+        </div>
+        <div class="rpt-card">
+          <div class="rpt-body empty" id="pSituation">Describe the problem this test addresses.</div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 03 &middot; Base vs. variant</div>
+        </div>
+        <div class="split">
+          <div class="split-card base">
+            <div class="split-card-head"><span class="split-pill">Base &middot; Control</span></div>
+            <div id="pBaseImgWrap"><div class="split-img-empty">No image added</div></div>
+            <div class="split-card-body">
+              <div class="split-card-desc empty" id="pBaseDesc">Base description will appear here.</div>
+              <a href="#" class="figma-link" id="pBaseFigma" style="display:none;" target="_blank" rel="noopener">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+                <span id="pBaseFigmaText">View in Figma</span>
+              </a>
+            </div>
+          </div>
+          <div class="split-card variant">
+            <div class="split-card-head"><span class="split-pill">Variant &middot; New</span></div>
+            <div id="pVariantImgWrap"><div class="split-img-empty">No image added</div></div>
+            <div class="split-card-body">
+              <div class="split-card-desc empty" id="pVariantDesc">Variant description will appear here.</div>
+              <a href="#" class="figma-link" id="pVariantFigma" style="display:none;" target="_blank" rel="noopener">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+                <span id="pVariantFigmaText">View in Figma</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 04 &middot; Results &amp; traffic</div>
+        </div>
+        <div class="rpt-card">
+          <table class="stat-table">
+            <thead>
+              <tr>
+                <th>Variation</th>
+                <th>Visitors</th>
+                <th>Conversions</th>
+                <th>Conv. rate</th>
+                <th>Uplift</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="stat-name"><span class="stat-swatch base"></span>Base</td>
+                <td class="mono" id="tBaseVisitors">—</td>
+                <td class="mono" id="tBaseConversions">—</td>
+                <td class="mono" id="tBaseRate">—</td>
+                <td class="mono">—</td>
+              </tr>
+              <tr>
+                <td class="stat-name"><span class="stat-swatch variant"></span>Variant</td>
+                <td class="mono" id="tVariantVisitors">—</td>
+                <td class="mono" id="tVariantConversions">—</td>
+                <td class="mono" id="tVariantRate">—</td>
+                <td class="mono stat-rate" id="tUplift">—</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="results-shot-wrap" id="pResultsImgWrap">
+            <div class="results-shot-empty">No results screenshot added</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 05 &middot; Insights &amp; outcomes</div>
+        </div>
+        <div class="rpt-card">
+          <div class="rpt-body empty" id="pInsights">What the results tell us and what it means for the client's goals.</div>
+        </div>
+      </div>
+
+      <div class="rpt-section">
+        <div class="rpt-section-head">
+          <div class="rpt-label">Section 06 &middot; Next test</div>
+        </div>
+        <div class="rpt-card">
+          <div class="next-sub">
+            <div class="next-sub-label">Hypothesis</div>
+            <div class="rpt-body empty" id="pNextTestHypothesis">We believe that…</div>
+          </div>
+          <div class="next-sub">
+            <div class="next-sub-label">Current situation</div>
+            <div class="rpt-body empty" id="pNextTestSituation">Describe the problem this next test addresses.</div>
+          </div>
+          <div class="next-test-imgs">
+            <div id="pNextImg1Wrap"><div class="split-img-empty">No image added</div></div>
+            <div id="pNextImg2Wrap"><div class="split-img-empty">No image added</div></div>
+          </div>
+          <a href="#" class="figma-link" id="pNextTestFigma" style="display:none;" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+            <span id="pNextTestFigmaText">View in Figma</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="rpt-footer">
+        <span id="pFooterClient">CRO Test Report</span>
+        <span id="pFooterDate">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // set default date to today
+  const today = new Date();
+  $('reportDate').value = today.toISOString().slice(0,10);
+
+  function fmtDate(str){
+    if(!str) return '—';
+    const d = new Date(str + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  }
+
+  function syncText(inputId, previewId, fallback){
+    const input = $(inputId);
+    const preview = $(previewId);
+    const update = () => {
+      const val = input.value.trim();
+      preview.textContent = val || fallback;
+      preview.classList.toggle('empty', !val);
+    };
+    input.addEventListener('input', update);
+    update();
+  }
+
+  syncText('clientName','pClient','Client name');
+  syncText('testName','pTestName','Test name goes here');
+  syncText('hypothesis','pHypothesis','We believe that…');
+  syncText('situation','pSituation','Describe the problem this test addresses.');
+  syncText('baseDesc','pBaseDesc','Base description will appear here.');
+  syncText('variantDesc','pVariantDesc','Variant description will appear here.');
+  syncText('insights','pInsights',"What the results tell us and what it means for the client's goals.");
+  syncText('nextTestHypothesis','pNextTestHypothesis','We believe that…');
+  syncText('nextTestSituation','pNextTestSituation','Describe the problem this next test addresses.');
+
+  // Traffic calculation
+  function parseNum(str){
+    const n = parseFloat(String(str).replace(/,/g,''));
+    return isNaN(n) ? null : n;
+  }
+  function fmtNum(n){ return n.toLocaleString('en-US'); }
+  function fmtPct(n){ return n.toFixed(2) + '%'; }
+
+  function updateTraffic(){
+    const bv = parseNum($('baseVisitors').value);
+    const bc = parseNum($('baseConversions').value);
+    const vv = parseNum($('variantVisitors').value);
+    const vc = parseNum($('variantConversions').value);
+
+    $('tBaseVisitors').textContent = bv !== null ? fmtNum(bv) : '—';
+    $('tBaseConversions').textContent = bc !== null ? fmtNum(bc) : '—';
+    $('tVariantVisitors').textContent = vv !== null ? fmtNum(vv) : '—';
+    $('tVariantConversions').textContent = vc !== null ? fmtNum(vc) : '—';
+
+    let baseRate = null, variantRate = null;
+    if(bv && bc !== null){ baseRate = (bc / bv) * 100; $('tBaseRate').textContent = fmtPct(baseRate); }
+    else { $('tBaseRate').textContent = '—'; }
+
+    if(vv && vc !== null){ variantRate = (vc / vv) * 100; $('tVariantRate').textContent = fmtPct(variantRate); }
+    else { $('tVariantRate').textContent = '—'; }
+
+    const upliftEl = $('tUplift');
+    if(baseRate !== null && baseRate !== 0 && variantRate !== null){
+      const uplift = ((variantRate - baseRate) / baseRate) * 100;
+      upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+      upliftEl.classList.remove('up','down');
+      upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+    } else {
+      upliftEl.textContent = '—';
+      upliftEl.classList.remove('up','down');
+    }
+  }
+  ['baseVisitors','baseConversions','variantVisitors','variantConversions'].forEach(id => {
+    $(id).addEventListener('input', updateTraffic);
+  });
+  updateTraffic();
+
+  $('preparedBy').addEventListener('input', () => {
+    $('pPrepared').textContent = $('preparedBy').value.trim() || '—';
+  });
+  $('pPrepared').textContent = '—';
+
+  $('reportDate').addEventListener('input', () => {
+    const f = fmtDate($('reportDate').value);
+    $('pDate').textContent = f;
+    $('pFooterDate').textContent = f;
+  });
+  $('pDate').textContent = fmtDate($('reportDate').value);
+  $('pFooterDate').textContent = fmtDate($('reportDate').value);
+
+  $('clientName').addEventListener('input', () => {
+    $('pFooterClient').textContent = ($('clientName').value.trim() || 'CRO Test Report') + ' — Confidential';
+  });
+  $('pFooterClient').textContent = 'CRO Test Report';
+
+  // Status pills
+  const statusMeta = {
+    win: {label:'Winning Variant'},
+    lose: {label:'Losing Variant'},
+    run: {label:'Running'},
+    inconclusive: {label:'Inconclusive'}
+  };
+  document.querySelectorAll('.status-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const s = pill.dataset.status;
+      const badge = $('pBadge');
+      badge.className = 'badge ' + s;
+      badge.textContent = statusMeta[s].label;
+    });
+  });
+
+  // Figma links
+  function syncFigma(inputId, linkId, textId){
+    const input = $(inputId);
+    const link = $(linkId);
+    const text = $(textId);
+    input.addEventListener('input', () => {
+      const val = input.value.trim();
+      if(val){
+        link.style.display = 'inline-flex';
+        link.href = val;
+        text.textContent = val.length > 46 ? val.slice(0,46) + '…' : val;
+      } else {
+        link.style.display = 'none';
+      }
+    });
+  }
+  syncFigma('baseFigma','pBaseFigma','pBaseFigmaText');
+  syncFigma('variantFigma','pVariantFigma','pVariantFigmaText');
+  syncFigma('nextTestFigma','pNextTestFigma','pNextTestFigmaText');
+
+  // Image uploads
+  function resizeImageDataUrl(dataUrl, maxDim, quality){
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  function bindUpload(inputId, wrapId, clearId, previewWrapId, placeholderLabel, previewImgClass, emptyHTML){
+    previewImgClass = previewImgClass || 'split-img';
+    emptyHTML = emptyHTML || '<div class="split-img-empty">No image added</div>';
+    function attach(){
+      const input = document.getElementById(inputId);
+      input.addEventListener('change', () => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async e => {
+          // Downscale/compress so the eventual share link (which embeds the image) stays a manageable size
+          const dataUrl = await resizeImageDataUrl(e.target.result, 1600, 0.85);
+          const wrap = document.getElementById(wrapId);
+          wrap.classList.add('has-image');
+          wrap.innerHTML = `<img src="${dataUrl}" alt="uploaded screenshot"><input type="file" accept="image/*" id="${inputId}">`;
+          document.getElementById(previewWrapId).innerHTML = `<img src="${dataUrl}" class="${previewImgClass}" alt="screenshot">`;
+          document.getElementById(clearId).style.display = 'block';
+          attach(); // rebind to new input element
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    attach();
+    document.getElementById(clearId).addEventListener('click', () => {
+      const wrap = document.getElementById(wrapId);
+      wrap.classList.remove('has-image');
+      wrap.innerHTML = `<span>${placeholderLabel}</span><input type="file" accept="image/*" id="${inputId}">`;
+      document.getElementById(previewWrapId).innerHTML = emptyHTML;
+      document.getElementById(clearId).style.display = 'none';
+      attach();
+    });
+  }
+
+  bindUpload('baseImage','baseUploadWrap','baseClear','pBaseImgWrap','Click or drop image');
+  bindUpload('variantImage','variantUploadWrap','variantClear','pVariantImgWrap','Click or drop image');
+  bindUpload('resultsImage','resultsUploadWrap','resultsClear','pResultsImgWrap','Click or drop image','results-img','<div class="results-shot-empty">No results screenshot added</div>');
+  bindUpload('nextImage1','nextImage1Wrap','nextImage1Clear','pNextImg1Wrap','Image 1');
+  bindUpload('nextImage2','nextImage2Wrap','nextImage2Clear','pNextImg2Wrap','Image 2');
+
+  // Print / PDF export
+  $('printBtn').addEventListener('click', () => window.print());
+
+  // Reset
+  $('resetBtn').addEventListener('click', () => {
+    if(!confirm('Clear all fields and start a new report?')) return;
+    document.querySelectorAll('.form-panel input[type=text], .form-panel textarea').forEach(el => el.value = '');
+    document.querySelectorAll('.form-panel input, .form-panel textarea').forEach(el => el.dispatchEvent(new Event('input')));
+    document.getElementById('baseUploadWrap').classList.remove('has-image');
+    document.getElementById('baseUploadWrap').innerHTML = '<span>Click or drop image</span><input type="file" accept="image/*" id="baseImage">';
+    document.getElementById('variantUploadWrap').classList.remove('has-image');
+    document.getElementById('variantUploadWrap').innerHTML = '<span>Click or drop image</span><input type="file" accept="image/*" id="variantImage">';
+    document.getElementById('pBaseImgWrap').innerHTML = '<div class="split-img-empty">No image added</div>';
+    document.getElementById('pVariantImgWrap').innerHTML = '<div class="split-img-empty">No image added</div>';
+    document.getElementById('baseClear').style.display = 'none';
+    document.getElementById('variantClear').style.display = 'none';
+    bindUpload('baseImage','baseUploadWrap','baseClear','pBaseImgWrap','Click or drop image');
+    bindUpload('variantImage','variantUploadWrap','variantClear','pVariantImgWrap','Click or drop image');
+
+    document.getElementById('resultsUploadWrap').classList.remove('has-image');
+    document.getElementById('resultsUploadWrap').innerHTML = '<span>Click or drop image</span><input type="file" accept="image/*" id="resultsImage">';
+    document.getElementById('pResultsImgWrap').innerHTML = '<div class="results-shot-empty">No results screenshot added</div>';
+    document.getElementById('resultsClear').style.display = 'none';
+    bindUpload('resultsImage','resultsUploadWrap','resultsClear','pResultsImgWrap','Click or drop image','results-img','<div class="results-shot-empty">No results screenshot added</div>');
+
+    document.getElementById('nextImage1Wrap').classList.remove('has-image');
+    document.getElementById('nextImage1Wrap').innerHTML = '<span>Image 1</span><input type="file" accept="image/*" id="nextImage1">';
+    document.getElementById('pNextImg1Wrap').innerHTML = '<div class="split-img-empty">No image added</div>';
+    document.getElementById('nextImage1Clear').style.display = 'none';
+    bindUpload('nextImage1','nextImage1Wrap','nextImage1Clear','pNextImg1Wrap','Image 1');
+
+    document.getElementById('nextImage2Wrap').classList.remove('has-image');
+    document.getElementById('nextImage2Wrap').innerHTML = '<span>Image 2</span><input type="file" accept="image/*" id="nextImage2">';
+    document.getElementById('pNextImg2Wrap').innerHTML = '<div class="split-img-empty">No image added</div>';
+    document.getElementById('nextImage2Clear').style.display = 'none';
+    bindUpload('nextImage2','nextImage2Wrap','nextImage2Clear','pNextImg2Wrap','Image 2');
+
+    document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+    document.querySelector('.status-pill[data-status="run"]').classList.add('active');
+    $('pBadge').className = 'badge run';
+    $('pBadge').textContent = 'Running';
+    $('reportDate').value = new Date().toISOString().slice(0,10);
+    $('reportDate').dispatchEvent(new Event('input'));
+    $('pBaseFigma').style.display='none';
+    $('pVariantFigma').style.display='none';
+    $('pNextTestFigma').style.display='none';
+    updateTraffic();
+
+    $('shareLinkBox').style.display = 'none';
+    $('shareLinkInput').value = '';
+  });
+
+  // ---------- Image lightbox (click any report image to enlarge) ----------
+  const lightbox = document.createElement('div');
+  lightbox.id = 'lightbox';
+  lightbox.innerHTML = '<img id="lightboxImg" src="" alt="Enlarged screenshot">';
+  document.body.appendChild(lightbox);
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest('.split-img, .results-img, .next-test-imgs img');
+    if(img){
+      $('lightboxImg').src = img.src;
+      lightbox.classList.add('open');
+    } else if(e.target === lightbox){
+      lightbox.classList.remove('open');
+    }
+  });
+
+  // ---------- Shareable link ----------
+  function getImgSrc(wrapId){
+    const img = document.querySelector('#' + wrapId + ' img');
+    return img ? img.src : '';
+  }
+
+  function collectReportData(){
+    return {
+      clientName: $('clientName').value,
+      testName: $('testName').value,
+      reportDate: $('reportDate').value,
+      status: (document.querySelector('.status-pill.active') || {}).dataset ? document.querySelector('.status-pill.active').dataset.status : 'run',
+      hypothesis: $('hypothesis').value,
+      situation: $('situation').value,
+      baseDesc: $('baseDesc').value,
+      baseImage: getImgSrc('baseUploadWrap'),
+      baseFigma: $('baseFigma').value,
+      variantDesc: $('variantDesc').value,
+      variantImage: getImgSrc('variantUploadWrap'),
+      variantFigma: $('variantFigma').value,
+      baseVisitors: $('baseVisitors').value,
+      baseConversions: $('baseConversions').value,
+      variantVisitors: $('variantVisitors').value,
+      variantConversions: $('variantConversions').value,
+      resultsImage: getImgSrc('resultsUploadWrap'),
+      insights: $('insights').value,
+      nextTestHypothesis: $('nextTestHypothesis').value,
+      nextTestSituation: $('nextTestSituation').value,
+      nextImage1: getImgSrc('nextImage1Wrap'),
+      nextImage2: getImgSrc('nextImage2Wrap'),
+      nextTestFigma: $('nextTestFigma').value,
+      preparedBy: $('preparedBy').value
+    };
+  }
+
+  function setBody(id, val, fallback){
+    const el = $(id);
+    val = (val || '').trim();
+    el.textContent = val || fallback;
+    el.classList.toggle('empty', !val);
+  }
+  function setImage(wrapId, src, cls, emptyHTML){
+    emptyHTML = emptyHTML || '<div class="split-img-empty">No image added</div>';
+    const wrap = $(wrapId);
+    wrap.innerHTML = src ? `<img src="${src}" class="${cls}" alt="screenshot">` : emptyHTML;
+  }
+  function setFigma(linkId, textId, val){
+    const link = $(linkId), text = $(textId);
+    val = (val || '').trim();
+    if(val){
+      link.style.display = 'inline-flex';
+      link.href = val;
+      text.textContent = val.length > 46 ? val.slice(0,46) + '…' : val;
+    } else {
+      link.style.display = 'none';
+    }
+  }
+
+  function applyReportData(data){
+    $('pClient').textContent = data.clientName || 'Client name';
+    $('pTestName').textContent = data.testName || 'Test name goes here';
+    $('pDate').textContent = fmtDate(data.reportDate);
+    $('pFooterDate').textContent = fmtDate(data.reportDate);
+    $('pFooterClient').textContent = (data.clientName || 'CRO Test Report') + ' — Confidential';
+    $('pPrepared').textContent = data.preparedBy || '—';
+
+    const s = data.status || 'run';
+    const badge = $('pBadge');
+    badge.className = 'badge ' + s;
+    badge.textContent = (statusMeta[s] || statusMeta.run).label;
+
+    setBody('pHypothesis', data.hypothesis, 'We believe that…');
+    setBody('pSituation', data.situation, 'Describe the problem this test addresses.');
+    setBody('pBaseDesc', data.baseDesc, 'Base description will appear here.');
+    setBody('pVariantDesc', data.variantDesc, 'Variant description will appear here.');
+    setBody('pInsights', data.insights, "What the results tell us and what it means for the client's goals.");
+    setBody('pNextTestHypothesis', data.nextTestHypothesis, 'We believe that…');
+    setBody('pNextTestSituation', data.nextTestSituation, 'Describe the problem this next test addresses.');
+
+    setImage('pBaseImgWrap', data.baseImage, 'split-img');
+    setImage('pVariantImgWrap', data.variantImage, 'split-img');
+    setImage('pResultsImgWrap', data.resultsImage, 'results-img', '<div class="results-shot-empty">No results screenshot added</div>');
+    setImage('pNextImg1Wrap', data.nextImage1, 'split-img');
+    setImage('pNextImg2Wrap', data.nextImage2, 'split-img');
+
+    setFigma('pBaseFigma', 'pBaseFigmaText', data.baseFigma);
+    setFigma('pVariantFigma', 'pVariantFigmaText', data.variantFigma);
+    setFigma('pNextTestFigma', 'pNextTestFigmaText', data.nextTestFigma);
+
+    const bv = parseNum(data.baseVisitors), bc = parseNum(data.baseConversions);
+    const vv = parseNum(data.variantVisitors), vc = parseNum(data.variantConversions);
+    $('tBaseVisitors').textContent = bv !== null ? fmtNum(bv) : '—';
+    $('tBaseConversions').textContent = bc !== null ? fmtNum(bc) : '—';
+    $('tVariantVisitors').textContent = vv !== null ? fmtNum(vv) : '—';
+    $('tVariantConversions').textContent = vc !== null ? fmtNum(vc) : '—';
+
+    let baseRate = null, variantRate = null;
+    if(bv && bc !== null){ baseRate = (bc / bv) * 100; $('tBaseRate').textContent = fmtPct(baseRate); }
+    else { $('tBaseRate').textContent = '—'; }
+    if(vv && vc !== null){ variantRate = (vc / vv) * 100; $('tVariantRate').textContent = fmtPct(variantRate); }
+    else { $('tVariantRate').textContent = '—'; }
+
+    const upliftEl = $('tUplift');
+    if(baseRate !== null && baseRate !== 0 && variantRate !== null){
+      const uplift = ((variantRate - baseRate) / baseRate) * 100;
+      upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+      upliftEl.classList.remove('up','down');
+      upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+    } else {
+      upliftEl.textContent = '—';
+      upliftEl.classList.remove('up','down');
+    }
+  }
+
+  // Compress + base64url-encode report data so it can live entirely inside the URL
+  // (no backend/storage needed — works from a downloaded file, a hosted page, or an artifact)
+  function toBase64Url(binaryStr){
+    return btoa(binaryStr).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function fromBase64Url(str){
+    const b64 = str.replace(/-/g,'+').replace(/_/g,'/');
+    const padded = b64 + '==='.slice((b64.length + 3) % 4);
+    return atob(padded);
+  }
+
+  async function encodeReportData(data){
+    const json = JSON.stringify(data);
+    if('CompressionStream' in window){
+      try{
+        const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
+        const buf = await new Response(stream).arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = '';
+        for(let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return 'gz.' + toBase64Url(binary);
+      } catch(err){ /* fall back to plain encoding below */ }
+    }
+    return 'p.' + toBase64Url(unescape(encodeURIComponent(json)));
+  }
+
+  async function decodeReportData(str){
+    const dot = str.indexOf('.');
+    const tag = str.slice(0, dot);
+    const payload = str.slice(dot + 1);
+    const binary = fromBase64Url(payload);
+    if(tag === 'gz' && 'DecompressionStream' in window){
+      const bytes = new Uint8Array(binary.length);
+      for(let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      const buf = await new Response(stream).arrayBuffer();
+      return JSON.parse(new TextDecoder().decode(buf));
+    }
+    return JSON.parse(decodeURIComponent(escape(binary)));
+  }
+
+  async function tryShortenUrl(longUrl){
+    try{
+      const api = 'https://is.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl);
+      const res = await fetch(api);
+      if(!res.ok) return null;
+      const text = (await res.text()).trim();
+      return text.startsWith('http') ? text : null; // is.gd returns "Error: ..." text on failure (e.g. too long)
+    } catch(err){
+      return null; // offline / blocked — fall back to the full link silently
+    }
+  }
+
+  $('shareBtn').addEventListener('click', async () => {
+    const btn = $('shareBtn');
+    const original = btn.textContent;
+    btn.textContent = 'Generating…';
+    btn.disabled = true;
+    try{
+      const data = collectReportData();
+      const encoded = await encodeReportData(data);
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = 'r=' + encoded;
+      const fullUrl = url.toString();
+
+      const shortUrl = await tryShortenUrl(fullUrl);
+      if(shortUrl){
+        $('shareLinkInput').value = shortUrl;
+        $('shareLinkWarn').style.display = 'none';
+      } else {
+        $('shareLinkInput').value = fullUrl;
+        $('shareLinkWarn').style.display = 'block';
+      }
+      $('shareLinkBox').style.display = 'block';
+    } catch(err){
+      console.error(err);
+      alert("Couldn't generate a link — try removing an image or two (large screenshots make the link too long) and try again.");
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  });
+
+  $('copyLinkBtn').addEventListener('click', () => {
+    const input = $('shareLinkInput');
+    input.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(input.value) : Promise.reject())
+      .then(() => {
+        $('copyLinkBtn').textContent = 'Copied!';
+        setTimeout(() => { $('copyLinkBtn').textContent = 'Copy'; }, 1500);
+      })
+      .catch(() => { document.execCommand('copy'); });
+  });
+
+  // If this page was opened via a shared report link, switch to read-only view mode
+  (async function initViewMode(){
+    const match = window.location.hash.match(/^#r=(.+)/);
+    if(!match) return;
+    document.body.classList.add('view-mode');
+    $('viewBanner').style.display = 'flex';
+    $('newReportLink').addEventListener('click', () => {
+      window.location.href = window.location.pathname + window.location.search;
+    });
+    try{
+      const data = await decodeReportData(match[1]);
+      applyReportData(data);
+    } catch(err){
+      console.error(err);
+      $('reportPage').insertAdjacentHTML('beforebegin', '<div class="view-error">This report link looks corrupted or was cut short (some apps truncate very long links). Ask for the link — or the original file — again.</div>');
+      $('reportPage').style.display = 'none';
+    }
+  })();
+</script>
+
+</body>
+</html>
