@@ -487,6 +487,20 @@
 
   /* ---------- Shareable link box ---------- */
   #shareLinkBox input{font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+  .share-card{
+    background:#FBFBFC;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+  }
+  .share-card-top{display:flex; align-items:flex-start; gap:10px; margin-bottom:14px;}
+  .share-card-mark{width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--signal) 0 50%, var(--win) 50% 100%); flex-shrink:0;}
+  .share-card-title{font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.35;}
+  .share-card-sub{font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.4;}
+  .share-card-actions{display:flex; gap:8px;}
+  .share-card-actions .btn{flex:1; margin-top:0; width:auto;}
+  .share-card-actions a.btn{text-decoration:none; display:inline-flex; align-items:center; justify-content:center;}
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
 
   /* ---------- Shared / view-only mode ---------- */
   .view-mode .app{grid-template-columns:1fr;}
@@ -722,13 +736,23 @@
       <button class="btn btn-primary" id="shareBtn">
         Generate shareable link
       </button>
-      <div class="hint" style="text-align:center; margin-top:8px;">Bundles the whole report into one link — no account or server needed. We'll try to shorten it and it'll show a branded preview card when pasted into Slack, email, etc.</div>
+      <div class="hint" style="text-align:center; margin-top:8px;">Bundles the whole report into one link — no account or server needed. It'll show a branded preview card when pasted into Slack, email, etc.</div>
       <div id="shareLinkBox" style="display:none; margin-top:12px;">
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="shareLinkInput" readonly style="flex:1;">
-          <button class="btn btn-primary" id="copyLinkBtn" style="width:auto; padding:9px 14px; font-size:12px;">Copy</button>
+        <div class="share-card">
+          <div class="share-card-top">
+            <div class="share-card-mark"></div>
+            <div>
+              <div class="share-card-title" id="shareCardTitle">CRO Test Report</div>
+              <div class="share-card-sub" id="shareCardSub">Ready to share</div>
+            </div>
+          </div>
+          <div class="share-card-actions">
+            <button class="btn btn-primary" id="copyLinkBtn">Copy link</button>
+            <a class="btn btn-ghost" id="openLinkBtn" href="#" target="_blank" rel="noopener">Open</a>
+          </div>
         </div>
-        <div class="hint" id="shareLinkWarn" style="display:none; color:var(--lose); margin-top:6px;">Couldn't shorten this one — it's long because of the attached screenshots (shorteners cap how much data a link can carry). It'll still work, but some chat apps or email clients may cut off very long links. If that happens, try removing an image or send the file directly.</div>
+        <input type="text" id="shareLinkInput" readonly class="visually-hidden" aria-hidden="true" tabindex="-1">
+        <div class="hint" id="shareLinkWarn" style="display:none; margin-top:8px;">This link is long because your whole report is packed into it — that's normal, and it'll still work. Some chat apps or email clients truncate very long links, though. If a recipient's copy doesn't open, try pasting the link into a shortener's own website (e.g. tinyurl.com) instead, or send the file directly.</div>
       </div>
       <button class="btn btn-ghost" id="printBtn">Export as PDF instead</button>
       <button class="btn btn-ghost" id="resetBtn">Clear all fields</button>
@@ -1299,18 +1323,6 @@
     return JSON.parse(decodeURIComponent(escape(binary)));
   }
 
-  async function tryShortenUrl(longUrl){
-    try{
-      const api = 'https://is.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl);
-      const res = await fetch(api);
-      if(!res.ok) return null;
-      const text = (await res.text()).trim();
-      return text.startsWith('http') ? text : null; // is.gd returns "Error: ..." text on failure (e.g. too long)
-    } catch(err){
-      return null; // offline / blocked — fall back to the full link silently
-    }
-  }
-
   $('shareBtn').addEventListener('click', async () => {
     const btn = $('shareBtn');
     const original = btn.textContent;
@@ -1324,18 +1336,18 @@
       url.hash = 'r=' + encoded;
       const fullUrl = url.toString();
 
-      const shortUrl = await tryShortenUrl(fullUrl);
-      if(shortUrl){
-        $('shareLinkInput').value = shortUrl;
-        $('shareLinkWarn').style.display = 'none';
-      } else {
-        $('shareLinkInput').value = fullUrl;
-        $('shareLinkWarn').style.display = 'block';
-      }
+      $('shareLinkInput').value = fullUrl;
+      $('openLinkBtn').href = fullUrl;
+
+      const cardTitle = [data.clientName, data.testName].filter(Boolean).join(' — ') || 'CRO Test Report';
+      $('shareCardTitle').textContent = cardTitle;
+      $('shareCardSub').textContent = 'Link ready — copy it or open to preview';
+
+      $('shareLinkWarn').style.display = fullUrl.length > 2000 ? 'block' : 'none';
       $('shareLinkBox').style.display = 'block';
     } catch(err){
       console.error(err);
-      alert("Couldn't generate a link — try removing an image or two (large screenshots make the link too long) and try again.");
+      alert("Couldn't generate a link — please try again.");
     } finally {
       btn.textContent = original;
       btn.disabled = false;
