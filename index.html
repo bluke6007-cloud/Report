@@ -30,6 +30,10 @@
 --run:#E8A33D;
 --run-dim:#FCF2E2;
 --base-grey:#8A8F98;
+--sidebar-bg:#14161D;
+--sidebar-line:rgba(255,255,255,.08);
+--sidebar-text:#C7C9D3;
+--sidebar-muted:#6C707E;
 }
 *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
 html,body{margin:0;padding:0;height:100%;}
@@ -44,12 +48,91 @@ font-family:'Inter',sans-serif;
 
 .app{
 display:grid;
-grid-template-columns:400px 1fr;
+grid-template-columns:224px 400px 1fr;
 height:100vh;
 overflow:hidden;
 }
 @media (max-width:900px){
 .app{grid-template-columns:1fr; height:auto; overflow:visible;}
+.sidebar{display:none;}
+}
+
+.sidebar{
+background:var(--sidebar-bg);
+color:var(--sidebar-text);
+display:flex;
+flex-direction:column;
+padding:22px 14px;
+overflow-y:auto;
+}
+.sidebar-brand{
+display:flex;
+align-items:center;
+gap:10px;
+padding:0 6px;
+margin-bottom:20px;
+}
+.sidebar-brand-name{
+font-size:12.5px;
+font-weight:700;
+color:#fff;
+line-height:1.3;
+}
+.sidebar-search{margin-bottom:18px;}
+.sidebar-search input{
+width:100%;
+background:rgba(255,255,255,.06);
+border:1px solid var(--sidebar-line);
+border-radius:8px;
+padding:8px 10px;
+color:#fff;
+font-family:'Inter',sans-serif;
+font-size:12.5px;
+}
+.sidebar-search input::placeholder{color:var(--sidebar-muted);}
+.sidebar-search input:focus{outline:none; border-color:var(--signal);}
+.sidebar-nav{display:flex; flex-direction:column; gap:2px; flex:1;}
+.sidebar-group-label{
+font-family:'JetBrains Mono',monospace;
+font-size:9.5px;
+letter-spacing:.08em;
+text-transform:uppercase;
+color:var(--sidebar-muted);
+font-weight:600;
+padding:14px 10px 6px;
+}
+.sidebar-group-label:first-child{padding-top:0;}
+.sidebar-link{
+display:flex;
+align-items:center;
+gap:10px;
+padding:8px 10px;
+border-radius:8px;
+font-size:12.5px;
+font-weight:500;
+color:var(--sidebar-text);
+text-decoration:none;
+transition:background .15s ease, color .15s ease;
+cursor:pointer;
+}
+.sidebar-link:hover{background:rgba(255,255,255,.07); color:#fff;}
+.sidebar-link.active{background:var(--signal); color:#fff;}
+.sidebar-link-num{
+font-family:'JetBrains Mono',monospace;
+font-size:10px;
+color:var(--sidebar-muted);
+width:16px;
+flex-shrink:0;
+}
+.sidebar-link.active .sidebar-link-num{color:rgba(255,255,255,.75);}
+.sidebar-link.filtered-out{display:none;}
+.sidebar-footer{
+margin-top:16px;
+padding-top:14px;
+border-top:1px solid var(--sidebar-line);
+font-size:10.5px;
+color:var(--sidebar-muted);
+padding-left:6px;
 }
 
 .form-panel{
@@ -490,8 +573,45 @@ padding:14px;
 .share-card-actions .btn{flex:1; margin-top:0; width:auto;}
 .share-card-actions a.btn{text-decoration:none; display:inline-flex; align-items:center; justify-content:center;}
 .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
-.view-mode .app{grid-template-columns:1fr;}
+.kpi-row{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+margin-bottom:22px;
+}
+.kpi-card{
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:16px;
+padding:18px 20px;
+}
+.kpi-card.highlight{background:var(--ink); border-color:var(--ink);}
+.kpi-card.highlight .kpi-label{color:rgba(255,255,255,.55);}
+.kpi-card.highlight .kpi-value{color:#fff;}
+.kpi-label{
+font-family:'JetBrains Mono',monospace;
+font-size:10px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--muted);
+font-weight:600;
+margin-bottom:9px;
+}
+.kpi-value{
+font-size:25px;
+font-weight:800;
+color:var(--ink);
+font-family:'Inter',sans-serif;
+letter-spacing:-.01em;
+}
+.kpi-value.up{color:var(--win);}
+.kpi-value.down{color:var(--lose);}
+.kpi-card.highlight .kpi-value.up{color:#6FE0A6;}
+.kpi-card.highlight .kpi-value.down{color:#F29E9E;}
+@media (max-width:520px){.kpi-row{grid-template-columns:1fr;}}
+.view-mode .app{grid-template-columns:224px 1fr;}
 .view-mode .form-panel{display:none;}
+@media (max-width:900px){.view-mode .app{grid-template-columns:1fr;}}
 .view-error{
 max-width:794px;
 margin:0 auto 16px;
@@ -530,14 +650,31 @@ padding:20px;
 <body>
 <div class="app">
 
+<!-- ===================== SIDEBAR ===================== -->
+<nav class="sidebar" id="sidebar">
+<div class="sidebar-brand">
+<div class="brand-mark"></div>
+<div class="sidebar-brand-name">CRO Report<br>Builder</div>
+</div>
+<div class="sidebar-search">
+<input type="text" id="sidebarFilter" placeholder="Filter sections…">
+</div>
+<div class="sidebar-nav" id="sidebarNav">
+<div class="sidebar-group-label">Report</div>
+<a class="sidebar-link" data-target="rsHeader"><span class="sidebar-link-num">00</span>Overview</a>
+<a class="sidebar-link" data-target="rsHypothesis"><span class="sidebar-link-num">01</span>Hypothesis</a>
+<a class="sidebar-link" data-target="rsSituation"><span class="sidebar-link-num">02</span>Current situation</a>
+<a class="sidebar-link" data-target="rsBaseVariant"><span class="sidebar-link-num">03</span>Base vs. variant</a>
+<a class="sidebar-link" data-target="rsResults"><span class="sidebar-link-num">04</span>Results &amp; traffic</a>
+<a class="sidebar-link" data-target="rsInsights"><span class="sidebar-link-num">05</span>Insights</a>
+<a class="sidebar-link" data-target="rsNextTest"><span class="sidebar-link-num">06</span>Next test</a>
+</div>
+<div class="sidebar-footer">CRO Report Builder</div>
+</nav>
+
 <!-- ===================== FORM PANEL ===================== -->
 <div class="form-panel">
-<div class="brand">
-<div class="brand-mark"></div>
-<div class="brand-name">CRO Report Builder</div>
-</div>
-
-<div class="section" style="margin-top:18px;">
+<div class="section" style="margin-top:6px;">
 <div class="section-label">Section 01 &middot; Test details</div>
 <div class="field">
 <label for="clientName">Client name</label>
@@ -755,7 +892,7 @@ padding:20px;
 <div class="preview-panel">
 <div class="page" id="reportPage">
 
-<div class="rpt-header rpt-card">
+<div class="rpt-header rpt-card" id="rsHeader">
 <div>
 <div class="rpt-eyebrow" id="pClient">Client name</div>
 <div class="rpt-title" id="pTestName">Test name goes here</div>
@@ -767,17 +904,32 @@ padding:20px;
 </div>
 </div>
 
-<div class="rpt-section">
+<div class="kpi-row">
+<div class="kpi-card">
+<div class="kpi-label">Base conv. rate</div>
+<div class="kpi-value" id="kpiBaseRate">—</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Variant conv. rate</div>
+<div class="kpi-value" id="kpiVariantRate">—</div>
+</div>
+<div class="kpi-card highlight">
+<div class="kpi-label">Uplift</div>
+<div class="kpi-value" id="kpiUplift">—</div>
+</div>
+</div>
+
+<div class="rpt-section" id="rsHypothesis">
 <div class="rpt-section-head"><div class="rpt-label">Section 01 &middot; Hypothesis</div></div>
 <div class="rpt-card"><div class="rpt-body empty" id="pHypothesis">We believe that…</div></div>
 </div>
 
-<div class="rpt-section">
+<div class="rpt-section" id="rsSituation">
 <div class="rpt-section-head"><div class="rpt-label">Section 02 &middot; Current situation</div></div>
 <div class="rpt-card"><div class="rpt-body empty" id="pSituation">Describe the problem this test addresses.</div></div>
 </div>
 
-<div class="rpt-section">
+<div class="rpt-section" id="rsBaseVariant">
 <div class="rpt-section-head"><div class="rpt-label">Section 03 &middot; Base vs. variant</div></div>
 <div class="split">
 <div class="split-card base">
@@ -805,7 +957,7 @@ padding:20px;
 </div>
 </div>
 
-<div class="rpt-section">
+<div class="rpt-section" id="rsResults">
 <div class="rpt-section-head"><div class="rpt-label">Section 04 &middot; Results &amp; traffic</div></div>
 <div class="rpt-card">
 <div class="metric-tags" id="pMetricTags" style="display:none;">
@@ -837,12 +989,12 @@ padding:20px;
 </div>
 </div>
 
-<div class="rpt-section">
+<div class="rpt-section" id="rsInsights">
 <div class="rpt-section-head"><div class="rpt-label">Section 05 &middot; Insights &amp; outcomes</div></div>
 <div class="rpt-card"><div class="rpt-body empty" id="pInsights">What the results tell us and what it means for the client's goals.</div></div>
 </div>
 
-<div class="rpt-section">
+<div class="rpt-section" id="rsNextTest">
 <div class="rpt-section-head"><div class="rpt-label">Section 06 &middot; Next test</div></div>
 <div class="rpt-card">
 <div class="rpt-heading empty" id="pNextTestName" style="margin-bottom:16px;">Next test name goes here</div>
@@ -1017,15 +1169,25 @@ function updateTraffic(){
   if(vv && vc !== null){ variantRate = (vc / vv) * 100; $('tVariantRate').textContent = fmtPct(variantRate); }
   else { $('tVariantRate').textContent = '—'; }
 
+  $('kpiBaseRate').textContent = baseRate !== null ? fmtPct(baseRate) : '—';
+  $('kpiVariantRate').textContent = variantRate !== null ? fmtPct(variantRate) : '—';
+
   const upliftEl = $('tUplift');
+  const kpiUpliftEl = $('kpiUplift');
   if(baseRate !== null && baseRate !== 0 && variantRate !== null){
     const uplift = ((variantRate - baseRate) / baseRate) * 100;
-    upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    const upliftText = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    upliftEl.textContent = upliftText;
     upliftEl.classList.remove('up','down');
     upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+    kpiUpliftEl.textContent = upliftText;
+    kpiUpliftEl.classList.remove('up','down');
+    kpiUpliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
   } else {
     upliftEl.textContent = '—';
     upliftEl.classList.remove('up','down');
+    kpiUpliftEl.textContent = '—';
+    kpiUpliftEl.classList.remove('up','down');
   }
 }
 ['baseVisitors','baseConversions','variantVisitors','variantConversions'].forEach(id => {
@@ -1249,19 +1411,63 @@ async function loadReportById(id){
   if(data.base_visitors && data.base_conversions != null){
     baseRate = (data.base_conversions / data.base_visitors) * 100;
     $('tBaseRate').textContent = fmtPct(baseRate);
+    $('kpiBaseRate').textContent = fmtPct(baseRate);
   }
   if(data.variant_visitors && data.variant_conversions != null){
     variantRate = (data.variant_conversions / data.variant_visitors) * 100;
     $('tVariantRate').textContent = fmtPct(variantRate);
+    $('kpiVariantRate').textContent = fmtPct(variantRate);
   }
   const upliftEl = $('tUplift');
+  const kpiUpliftEl = $('kpiUplift');
   if(baseRate !== null && baseRate !== 0 && variantRate !== null){
     const uplift = ((variantRate - baseRate) / baseRate) * 100;
-    upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    const upliftText = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    upliftEl.textContent = upliftText;
     upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+    kpiUpliftEl.textContent = upliftText;
+    kpiUpliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
   }
 
   document.title = (data.test_name || 'CRO Test Report') + ' · CRO Test Report';
+}
+
+// ---------- Sidebar: filter + scroll-to-section + active highlighting ----------
+const sidebarLinks = Array.from(document.querySelectorAll('.sidebar-link'));
+
+$('sidebarFilter').addEventListener('input', () => {
+  const q = $('sidebarFilter').value.trim().toLowerCase();
+  sidebarLinks.forEach(link => {
+    const text = link.textContent.toLowerCase();
+    link.classList.toggle('filtered-out', q.length > 0 && !text.includes(q));
+  });
+});
+
+sidebarLinks.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = $(link.dataset.target);
+    if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+const scrollRoot = document.querySelector('.preview-panel');
+if(scrollRoot && 'IntersectionObserver' in window){
+  const sectionEls = sidebarLinks
+    .map(link => $(link.dataset.target))
+    .filter(Boolean);
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const link = sidebarLinks.find(l => l.dataset.target === entry.target.id);
+        if(link){
+          sidebarLinks.forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+        }
+      }
+    });
+  }, { root: scrollRoot, rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  sectionEls.forEach(el => observer.observe(el));
 }
 
 const params = new URLSearchParams(location.search);
