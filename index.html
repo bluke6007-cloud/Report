@@ -447,6 +447,17 @@ color:var(--muted);
 font-weight:600;
 margin-bottom:6px;
 }
+.metric-tags{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.metric-tag{
+font-family:'JetBrains Mono',monospace;
+font-size:11px;
+font-weight:600;
+padding:6px 11px;
+border-radius:7px;
+background:var(--signal-dim);
+color:var(--signal);
+}
+.metric-tag.secondary{background:#EEEEEC; color:var(--muted);}
 .next-test-imgs{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -611,6 +622,16 @@ padding:20px;
 <div class="section">
 <div class="section-label">Section 05 &middot; Results &amp; traffic</div>
 <div class="hint" style="margin-top:-6px; margin-bottom:14px;">Enter the unique visitors and conversions for each variation — the report will calculate conversion rate and uplift automatically.</div>
+<div class="field" style="display:flex; gap:10px;">
+<div style="flex:1;">
+<label for="metricPrimary">Primary metric</label>
+<input type="text" id="metricPrimary" placeholder="e.g. Checkout completion rate">
+</div>
+<div style="flex:1;">
+<label for="metricSecondary">Secondary metrics</label>
+<input type="text" id="metricSecondary" placeholder="e.g. AOV, bounce rate">
+</div>
+</div>
 <div class="variant-block base">
 <div class="vb-title">Base traffic</div>
 <div class="field" style="display:flex; gap:10px; margin-bottom:0;">
@@ -657,6 +678,14 @@ padding:20px;
 
 <div class="section">
 <div class="section-label">Section 07 &middot; Next test</div>
+<div class="field">
+<label for="nextTestName">Test name</label>
+<input type="text" id="nextTestName" placeholder="e.g. Checkout — Progress Indicator">
+</div>
+<div class="field">
+<label for="nextTestMetrics">Metrics to track</label>
+<input type="text" id="nextTestMetrics" placeholder="e.g. Checkout completion rate, cart abandonment">
+</div>
 <div class="field">
 <label for="nextTestHypothesis">Hypothesis</label>
 <textarea id="nextTestHypothesis" placeholder="We believe that [change] for [audience] will result in [outcome] because [reasoning]."></textarea>
@@ -779,6 +808,10 @@ padding:20px;
 <div class="rpt-section">
 <div class="rpt-section-head"><div class="rpt-label">Section 04 &middot; Results &amp; traffic</div></div>
 <div class="rpt-card">
+<div class="metric-tags" id="pMetricTags" style="display:none;">
+<span class="metric-tag" id="pMetricPrimary" style="display:none;"></span>
+<span class="metric-tag secondary" id="pMetricSecondary" style="display:none;"></span>
+</div>
 <table class="stat-table">
 <thead><tr><th>Variation</th><th>Visitors</th><th>Conversions</th><th>Conv. rate</th><th>Uplift</th></tr></thead>
 <tbody>
@@ -812,6 +845,7 @@ padding:20px;
 <div class="rpt-section">
 <div class="rpt-section-head"><div class="rpt-label">Section 06 &middot; Next test</div></div>
 <div class="rpt-card">
+<div class="rpt-heading empty" id="pNextTestName" style="margin-bottom:16px;">Next test name goes here</div>
 <div class="next-sub">
 <div class="next-sub-label">Hypothesis</div>
 <div class="rpt-body empty" id="pNextTestHypothesis">We believe that…</div>
@@ -819,6 +853,10 @@ padding:20px;
 <div class="next-sub">
 <div class="next-sub-label">Current situation</div>
 <div class="rpt-body empty" id="pNextTestSituation">Describe the problem this next test addresses.</div>
+</div>
+<div class="next-sub">
+<div class="next-sub-label">Metrics to track</div>
+<div class="rpt-body empty" id="pNextTestMetrics">Which metrics will indicate success?</div>
 </div>
 <div class="next-test-imgs">
 <div id="pNextImg1Wrap"><div class="split-img-empty">No image added</div></div>
@@ -915,11 +953,29 @@ syncText('situation','pSituation','Describe the problem this test addresses.');
 syncText('baseDesc','pBaseDesc','Base description will appear here.');
 syncText('variantDesc','pVariantDesc','Variant description will appear here.');
 syncText('insights','pInsights',"What the results tell us and what it means for the client's goals.");
+syncText('nextTestName','pNextTestName','Next test name goes here');
+syncText('nextTestMetrics','pNextTestMetrics','Which metrics will indicate success?');
 syncText('nextTestHypothesis','pNextTestHypothesis','We believe that…');
 syncText('nextTestSituation','pNextTestSituation','Describe the problem this next test addresses.');
 syncFigma('baseFigma','pBaseFigma');
 syncFigma('variantFigma','pVariantFigma');
 syncFigma('nextTestFigma','pNextTestFigma');
+
+function updateMetricTags(primaryVal, secondaryVal){
+  const primary = primaryVal !== undefined ? primaryVal : $('metricPrimary').value.trim();
+  const secondary = secondaryVal !== undefined ? secondaryVal : $('metricSecondary').value.trim();
+  const wrap = $('pMetricTags');
+  const pEl = $('pMetricPrimary');
+  const sEl = $('pMetricSecondary');
+  pEl.textContent = 'Primary: ' + primary;
+  pEl.style.display = primary ? 'inline-block' : 'none';
+  sEl.textContent = 'Secondary: ' + secondary;
+  sEl.style.display = secondary ? 'inline-block' : 'none';
+  wrap.style.display = (primary || secondary) ? 'flex' : 'none';
+}
+$('metricPrimary').addEventListener('input', () => updateMetricTags());
+$('metricSecondary').addEventListener('input', () => updateMetricTags());
+updateMetricTags();
 
 // ---------- Date ----------
 const today = new Date();
@@ -1091,7 +1147,11 @@ $('shareBtn').addEventListener('click', async () => {
       variant_visitors: parseNum($('variantVisitors').value),
       variant_conversions: parseNum($('variantConversions').value),
       results_image_url: resultsImgUrl,
+      metric_primary: $('metricPrimary').value.trim(),
+      metric_secondary: $('metricSecondary').value.trim(),
       insights: $('insights').value.trim(),
+      next_test_name: $('nextTestName').value.trim(),
+      next_test_metrics: $('nextTestMetrics').value.trim(),
       next_test_hypothesis: $('nextTestHypothesis').value.trim(),
       next_test_situation: $('nextTestSituation').value.trim(),
       next_test_figma: $('nextTestFigma').value.trim(),
@@ -1164,6 +1224,9 @@ async function loadReportById(id){
   setText('pBaseDesc', data.base_desc, 'Base description will appear here.');
   setText('pVariantDesc', data.variant_desc, 'Variant description will appear here.');
   setText('pInsights', data.insights, "What the results tell us and what it means for the client's goals.");
+  updateMetricTags(data.metric_primary || '', data.metric_secondary || '');
+  setText('pNextTestName', data.next_test_name, 'Next test name goes here');
+  setText('pNextTestMetrics', data.next_test_metrics, 'Which metrics will indicate success?');
   setText('pNextTestHypothesis', data.next_test_hypothesis, 'We believe that…');
   setText('pNextTestSituation', data.next_test_situation, 'Describe the problem this next test addresses.');
 
