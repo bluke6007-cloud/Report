@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRO Report Builder</title>
+<meta name="description" content="Hypothesis, results, screenshots and what's next — view the full live CRO test report.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CRO Test Report">
+<meta property="og:description" content="Hypothesis, results, screenshots and what's next — view the full live report.">
+<meta property="og:image" content="og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CRO Test Report">
+<meta name="twitter:description" content="Hypothesis, results, screenshots and what's next — view the full live report.">
+<meta name="twitter:image" content="og-card.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--ink:#15171C;
+--paper:#F1F2F6;
+--panel:#FFFFFF;
+--line:#E4E5EB;
+--muted:#6B6F79;
+--signal:#3956E8;
+--signal-dim:#E7ECFE;
+--win:#1E8E52;
+--win-dim:#E1F5E9;
+--lose:#D64545;
+--lose-dim:#FBEAEA;
+--run:#E8A33D;
+--run-dim:#FCF2E2;
+--base-grey:#8A8F98;
+}
+*{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+background:var(--paper);
+color:var(--ink);
+font-family:'Inter',sans-serif;
+-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+.display{font-family:'Inter',sans-serif; font-weight:800;}
+
+.app{
+display:grid;
+grid-template-columns:400px 1fr;
+height:100vh;
+overflow:hidden;
+}
+@media (max-width:900px){
+.app{grid-template-columns:1fr; height:auto; overflow:visible;}
+}
+
+.form-panel{
+background:var(--panel);
+border-right:1px solid var(--line);
+padding:28px 26px 0;
+overflow-y:auto;
+max-height:100vh;
+}
+@media (max-width:900px){ .form-panel{max-height:none;border-right:none;border-bottom:1px solid var(--line);} }
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:6px;
+}
+.brand-mark{
+width:22px;height:22px;
+border-radius:5px;
+background:linear-gradient(135deg,var(--signal) 0 50%, var(--win) 50% 100%);
+flex-shrink:0;
+}
+.brand-name{
+font-size:13px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--muted);
+font-weight:500;
+}
+.form-panel h1{display:none;}
+.section{
+margin-top:30px;
+padding-top:22px;
+border-top:1px solid var(--line);
+}
+.section:first-of-type{border-top:none;margin-top:22px;padding-top:0;}
+.section-label{
+font-family:'JetBrains Mono',monospace;
+font-size:11px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--signal);
+font-weight:600;
+margin-bottom:14px;
+}
+label{
+display:block;
+font-size:12px;
+font-weight:500;
+color:var(--ink);
+margin-bottom:6px;
+}
+.field{margin-bottom:16px;}
+.hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4;}
+input[type=text], input[type=date], textarea, select{
+width:100%;
+border:1px solid var(--line);
+background:#FBFBFC;
+border-radius:9px;
+padding:9px 11px;
+font-family:'Inter',sans-serif;
+font-size:13.5px;
+color:var(--ink);
+resize:vertical;
+transition:border-color .15s ease, box-shadow .15s ease;
+}
+input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus{
+outline:none;
+border-color:var(--signal);
+box-shadow:0 0 0 3px var(--signal-dim);
+}
+textarea{min-height:74px; line-height:1.5;}
+select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6F76'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:30px;}
+.status-row{display:flex; gap:8px; flex-wrap:wrap;}
+.status-pill{
+flex:1;
+min-width:96px;
+text-align:center;
+padding:8px 6px;
+border-radius:999px;
+border:1px solid var(--line);
+font-size:11.5px;
+font-weight:600;
+cursor:pointer;
+color:var(--muted);
+background:#FBFBFC;
+transition:all .15s ease;
+}
+.status-pill.active[data-status="win"]{background:var(--win-dim); border-color:var(--win); color:var(--win);}
+.status-pill.active[data-status="lose"]{background:var(--lose-dim); border-color:var(--lose); color:var(--lose);}
+.status-pill.active[data-status="run"]{background:var(--run-dim); border-color:var(--run); color:#946018;}
+.status-pill.active[data-status="inconclusive"]{background:#EEEEEC; border-color:var(--base-grey); color:var(--ink);}
+.variant-block{
+background:#FBFBFC;
+border:1px solid var(--line);
+border-radius:14px;
+padding:16px;
+margin-bottom:14px;
+}
+.variant-block.base{border-color:var(--signal-dim); box-shadow:inset 3px 0 0 var(--signal);}
+.variant-block.variant{border-color:var(--win-dim); box-shadow:inset 3px 0 0 var(--win);}
+.variant-block .vb-title{
+font-size:11px;
+text-transform:uppercase;
+letter-spacing:.06em;
+font-weight:700;
+margin-bottom:12px;
+color:var(--ink);
+}
+.upload{
+border:1.5px dashed var(--line);
+border-radius:8px;
+padding:14px;
+text-align:center;
+cursor:pointer;
+background:#fff;
+font-size:12px;
+color:var(--muted);
+transition:border-color .15s ease, background .15s ease;
+position:relative;
+overflow:hidden;
+}
+.upload:hover{border-color:var(--signal); background:var(--signal-dim);}
+.upload input{position:absolute; inset:0; opacity:0; cursor:pointer;}
+.upload.has-image{padding:0; border-style:solid;}
+.upload.has-image img{width:100%; display:block; max-height:120px; object-fit:cover;}
+.upload-clear{
+display:none;
+font-size:11px;
+color:var(--lose);
+margin-top:6px;
+cursor:pointer;
+text-align:right;
+text-decoration:underline;
+}
+.btn-row{
+position:sticky;
+bottom:0;
+left:0;
+right:0;
+width:calc(100% + 52px);
+margin:30px -26px 0;
+padding:20px 26px 26px;
+background:#E7E8EE;
+border-top:1px solid var(--line);
+box-shadow:0 -12px 24px -8px rgba(20,20,30,.08);
+}
+.btn{
+width:100%;
+padding:13px;
+border-radius:10px;
+border:none;
+font-family:'Inter',sans-serif;
+font-weight:700;
+font-size:14px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+}
+.btn:disabled{opacity:.6; cursor:not-allowed;}
+.btn-primary{background:var(--ink); color:#fff;}
+.btn-primary:hover{background:#000;}
+.btn-ghost{
+background:transparent;
+color:var(--muted);
+border:1px solid var(--line);
+margin-top:8px;
+font-size:12px;
+font-weight:500;
+font-family:'Inter',sans-serif;
+}
+.btn-ghost:hover{border-color:var(--lose); color:var(--lose);}
+
+.preview-panel{
+padding:40px;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+overflow-y:auto;
+}
+.page{
+width:794px;
+max-width:100%;
+min-height:1123px;
+background:var(--paper);
+box-shadow:0 1px 3px rgba(0,0,0,.06), 0 12px 40px rgba(20,20,30,.08);
+padding:48px 48px 56px;
+}
+.rpt-card{
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:16px;
+padding:24px 28px;
+}
+.rpt-header.rpt-card{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+margin-bottom:22px;
+}
+.rpt-eyebrow{
+font-family:'JetBrains Mono',monospace;
+font-size:11px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--signal);
+font-weight:600;
+margin-bottom:10px;
+}
+.rpt-title{
+font-family:'Inter',sans-serif;
+font-size:26px;
+font-weight:800;
+letter-spacing:-.01em;
+line-height:1.15;
+max-width:440px;
+color:var(--ink);
+}
+.rpt-meta{
+text-align:right;
+font-size:12px;
+color:var(--muted);
+line-height:1.7;
+}
+.rpt-meta b{color:var(--ink); font-weight:700;}
+.badge{
+display:inline-block;
+margin-top:10px;
+padding:5px 12px;
+border-radius:999px;
+font-size:11px;
+font-weight:700;
+text-transform:uppercase;
+letter-spacing:.04em;
+}
+.badge.win{background:var(--win-dim); color:var(--win);}
+.badge.lose{background:var(--lose-dim); color:var(--lose);}
+.badge.run{background:var(--run-dim); color:#946018;}
+.badge.inconclusive{background:#EEEEEC; color:var(--ink);}
+.rpt-section{margin-bottom:22px;}
+.rpt-section-head{margin-bottom:14px;}
+.rpt-label{
+font-family:'JetBrains Mono',monospace;
+font-size:11px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--signal);
+font-weight:600;
+margin-bottom:6px;
+}
+.rpt-heading{
+font-family:'Inter',sans-serif;
+font-size:19px;
+font-weight:800;
+color:var(--ink);
+letter-spacing:-.01em;
+}
+.rpt-body{
+font-size:13.5px;
+line-height:1.65;
+color:#3A3D45;
+white-space:pre-wrap;
+}
+.rpt-body.empty{color:#AEB1B8; font-style:italic;}
+.split{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+margin-top:2px;
+}
+.split-card{
+border:1px solid var(--line);
+border-radius:14px;
+overflow:hidden;
+background:var(--panel);
+}
+.split-card.base{border-color:var(--signal-dim);}
+.split-card.variant{border-color:var(--win-dim);}
+.split-card-head{padding:14px 16px 0;}
+.split-pill{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:5px 11px;
+border-radius:999px;
+font-size:10.5px;
+font-weight:700;
+text-transform:uppercase;
+letter-spacing:.04em;
+}
+.split-card.base .split-pill{background:var(--signal-dim); color:var(--signal);}
+.split-card.variant .split-pill{background:var(--win-dim); color:var(--win);}
+.split-img{
+width:100%;
+height:150px;
+object-fit:cover;
+background:#EEEFF3;
+display:block;
+margin-top:12px;
+}
+.split-img-empty{
+width:100%;
+height:150px;
+margin-top:12px;
+background:repeating-linear-gradient(45deg,#F2F3F7,#F2F3F7 8px,#E7E8EE 8px,#E7E8EE 16px);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:10.5px;
+color:#A6A9B2;
+text-transform:uppercase;
+letter-spacing:.05em;
+}
+.split-card-body{padding:14px 16px 16px;}
+.split-card-desc{font-size:12.5px; line-height:1.55; color:#3A3D45; min-height:20px;}
+.split-card-desc.empty{color:#AEB1B8; font-style:italic;}
+.figma-link{
+margin-top:10px;
+display:inline-flex;
+align-items:center;
+gap:6px;
+font-size:11px;
+font-weight:600;
+color:var(--ink);
+text-decoration:none;
+padding:6px 10px;
+border:1px solid var(--line);
+border-radius:999px;
+background:#FBFBFC;
+word-break:break-all;
+}
+.figma-link svg{flex-shrink:0;}
+.rpt-footer{
+margin-top:26px;
+padding:0 4px;
+font-size:10.5px;
+color:#9A9DA6;
+display:flex;
+justify-content:space-between;
+}
+.stat-table{
+width:100%;
+border-collapse:collapse;
+margin-bottom:16px;
+font-size:12.5px;
+}
+.stat-table th{
+text-align:left;
+font-family:'JetBrains Mono',monospace;
+font-size:9.5px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--muted);
+font-weight:600;
+padding:0 10px 10px;
+border-bottom:1px solid var(--line);
+}
+.stat-table th:not(:first-child), .stat-table td:not(:first-child){text-align:right;}
+.stat-table td{
+padding:11px 10px;
+border-bottom:1px solid var(--line);
+}
+.stat-table tr:last-child td{border-bottom:none;}
+.stat-name{display:flex; align-items:center; gap:8px; font-weight:700;}
+.stat-swatch{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+.stat-swatch.base{background:var(--signal);}
+.stat-swatch.variant{background:var(--win);}
+.stat-rate{font-family:'JetBrains Mono',monospace;}
+.stat-rate.up{color:var(--win);}
+.stat-rate.down{color:var(--lose);}
+.results-shot-wrap{margin-top:4px;}
+.results-shot-wrap img, .results-img{width:100%; border-radius:10px; border:1px solid var(--line); display:block; height:auto; object-fit:contain;}
+.results-shot-empty{
+width:100%;
+height:110px;
+border-radius:10px;
+background:repeating-linear-gradient(45deg,#F2F3F7,#F2F3F7 8px,#E7E8EE 8px,#E7E8EE 16px);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:10.5px;
+color:#A6A9B2;
+text-transform:uppercase;
+letter-spacing:.05em;
+}
+.next-sub{margin-bottom:16px;}
+.next-sub-label{
+font-family:'JetBrains Mono',monospace;
+font-size:10.5px;
+letter-spacing:.06em;
+text-transform:uppercase;
+color:var(--muted);
+font-weight:600;
+margin-bottom:6px;
+}
+.next-test-imgs{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:14px;
+}
+.next-test-imgs img{width:100%; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--line); display:block;}
+.next-test-imgs .split-img-empty{height:120px; border-radius:10px; margin-top:0;}
+.split-img, .results-img, .next-test-imgs img{cursor:zoom-in; transition:opacity .15s ease;}
+.split-img:hover, .results-img:hover, .next-test-imgs img:hover{opacity:.85;}
+#lightbox{
+position:fixed; inset:0; background:rgba(15,17,20,.86);
+display:none; align-items:center; justify-content:center;
+padding:5vw; z-index:999; cursor:zoom-out;
+}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 24px 70px rgba(0,0,0,.45);}
+#shareLinkBox input{font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+.share-card{
+background:#FBFBFC;
+border:1px solid var(--line);
+border-radius:14px;
+padding:14px;
+}
+.share-card-top{display:flex; align-items:flex-start; gap:10px; margin-bottom:14px;}
+.share-card-mark{width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--signal) 0 50%, var(--win) 50% 100%); flex-shrink:0;}
+.share-card-title{font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.35;}
+.share-card-sub{font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.4;}
+.share-card-actions{display:flex; gap:8px;}
+.share-card-actions .btn{flex:1; margin-top:0; width:auto;}
+.share-card-actions a.btn{text-decoration:none; display:inline-flex; align-items:center; justify-content:center;}
+.visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
+.view-mode .app{grid-template-columns:1fr;}
+.view-mode .form-panel{display:none;}
+.view-error{
+max-width:794px;
+margin:0 auto 16px;
+background:var(--lose-dim);
+color:var(--lose);
+border-radius:12px;
+padding:14px 18px;
+font-size:13px;
+font-weight:600;
+}
+.loading-note{
+max-width:794px;
+margin:0 auto 16px;
+background:var(--signal-dim);
+color:var(--signal);
+border-radius:12px;
+padding:14px 18px;
+font-size:13px;
+font-weight:600;
+}
+@media print{
+body{background:#fff;}
+.form-panel, .toolbar-note{display:none !important;}
+.app{display:block;}
+.preview-panel{padding:0; display:block; background:var(--paper);}
+.page{
+box-shadow:none;
+width:100%;
+min-height:0;
+padding:20px;
+}
+.split-card, .rpt-card, .rpt-section{page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===================== FORM PANEL ===================== -->
+<div class="form-panel">
+<div class="brand">
+<div class="brand-mark"></div>
+<div class="brand-name">CRO Report Builder</div>
+</div>
+
+<div class="section" style="margin-top:18px;">
+<div class="section-label">Section 01 &middot; Test details</div>
+<div class="field">
+<label for="clientName">Client name</label>
+<input type="text" id="clientName" placeholder="e.g. Northwind Retail">
+</div>
+<div class="field">
+<label for="testName">Test name</label>
+<input type="text" id="testName" placeholder="e.g. Checkout — Simplified Shipping Step">
+</div>
+<div class="field">
+<label for="reportDate">Report date</label>
+<input type="date" id="reportDate">
+</div>
+<div class="field">
+<label>Result status</label>
+<div class="status-row" id="statusRow">
+<div class="status-pill" data-status="win">Winning</div>
+<div class="status-pill" data-status="lose">Losing</div>
+<div class="status-pill" data-status="inconclusive">Inconclusive</div>
+<div class="status-pill active" data-status="run">Running</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 02 &middot; Hypothesis</div>
+<div class="field">
+<textarea id="hypothesis" placeholder="We believe that [change] for [audience] will result in [outcome] because [reasoning]."></textarea>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 03 &middot; Current situation</div>
+<div class="field">
+<textarea id="situation" placeholder="What the data/user research showed before this test — the problem being addressed."></textarea>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 04 &middot; Base &amp; variant</div>
+<div class="variant-block base">
+<div class="vb-title">Base (control)</div>
+<div class="field">
+<label for="baseDesc">Description</label>
+<textarea id="baseDesc" placeholder="What the current, live version looks like and does."></textarea>
+</div>
+<div class="field">
+<label>Screenshot</label>
+<div class="upload" id="baseUploadWrap">
+<span id="baseUploadLabel">Click or drop image</span>
+<input type="file" accept="image/*" id="baseImage">
+</div>
+<div class="upload-clear" id="baseClear">Remove image</div>
+</div>
+<div class="field" style="margin-bottom:0;">
+<label for="baseFigma">Figma link</label>
+<input type="text" id="baseFigma" placeholder="https://figma.com/file/...">
+</div>
+</div>
+
+<div class="variant-block variant">
+<div class="vb-title">Variant (new design)</div>
+<div class="field">
+<label for="variantDesc">Description</label>
+<textarea id="variantDesc" placeholder="What changed and why, in concrete terms."></textarea>
+</div>
+<div class="field">
+<label>Screenshot</label>
+<div class="upload" id="variantUploadWrap">
+<span>Click or drop image</span>
+<input type="file" accept="image/*" id="variantImage">
+</div>
+<div class="upload-clear" id="variantClear">Remove image</div>
+</div>
+<div class="field" style="margin-bottom:0;">
+<label for="variantFigma">Figma link</label>
+<input type="text" id="variantFigma" placeholder="https://figma.com/file/...">
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 05 &middot; Results &amp; traffic</div>
+<div class="hint" style="margin-top:-6px; margin-bottom:14px;">Enter the unique visitors and conversions for each variation — the report will calculate conversion rate and uplift automatically.</div>
+<div class="variant-block base">
+<div class="vb-title">Base traffic</div>
+<div class="field" style="display:flex; gap:10px; margin-bottom:0;">
+<div style="flex:1;">
+<label for="baseVisitors">Unique visitors</label>
+<input type="text" inputmode="numeric" id="baseVisitors" placeholder="24,569">
+</div>
+<div style="flex:1;">
+<label for="baseConversions">Conversions</label>
+<input type="text" inputmode="numeric" id="baseConversions" placeholder="4,797">
+</div>
+</div>
+</div>
+<div class="variant-block variant">
+<div class="vb-title">Variant traffic</div>
+<div class="field" style="display:flex; gap:10px; margin-bottom:0;">
+<div style="flex:1;">
+<label for="variantVisitors">Unique visitors</label>
+<input type="text" inputmode="numeric" id="variantVisitors" placeholder="24,570">
+</div>
+<div style="flex:1;">
+<label for="variantConversions">Conversions</label>
+<input type="text" inputmode="numeric" id="variantConversions" placeholder="4,555">
+</div>
+</div>
+</div>
+<div class="field" style="margin-top:16px;">
+<label>Results screenshot</label>
+<div class="hint" style="margin-top:-2px; margin-bottom:8px;">e.g. the stats table from your testing tool showing which variation is winning.</div>
+<div class="upload" id="resultsUploadWrap">
+<span>Click or drop image</span>
+<input type="file" accept="image/*" id="resultsImage">
+</div>
+<div class="upload-clear" id="resultsClear">Remove image</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 06 &middot; Insights &amp; outcomes</div>
+<div class="field" style="margin-bottom:0;">
+<textarea id="insights" placeholder="What the results tell us, why they happened, and what it means for the client's goals."></textarea>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 07 &middot; Next test</div>
+<div class="field">
+<label for="nextTestHypothesis">Hypothesis</label>
+<textarea id="nextTestHypothesis" placeholder="We believe that [change] for [audience] will result in [outcome] because [reasoning]."></textarea>
+</div>
+<div class="field">
+<label for="nextTestSituation">Current situation</label>
+<textarea id="nextTestSituation" placeholder="What the data/user research shows now — the problem this next test addresses."></textarea>
+</div>
+<div class="field">
+<label>Concept images</label>
+<div style="display:flex; gap:10px;">
+<div style="flex:1;">
+<div class="upload" id="nextImage1Wrap">
+<span>Image 1</span>
+<input type="file" accept="image/*" id="nextImage1">
+</div>
+<div class="upload-clear" id="nextImage1Clear">Remove</div>
+</div>
+<div style="flex:1;">
+<div class="upload" id="nextImage2Wrap">
+<span>Image 2</span>
+<input type="file" accept="image/*" id="nextImage2">
+</div>
+<div class="upload-clear" id="nextImage2Clear">Remove</div>
+</div>
+</div>
+</div>
+<div class="field" style="margin-bottom:0;">
+<label for="nextTestFigma">Figma link</label>
+<input type="text" id="nextTestFigma" placeholder="https://figma.com/file/...">
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">Section 08 &middot; Prepared by</div>
+<div class="field" style="margin-bottom:0;">
+<input type="text" id="preparedBy" placeholder="Your name / agency">
+</div>
+</div>
+
+<div class="btn-row">
+<button class="btn btn-primary" id="shareBtn">Generate shareable link</button>
+<div class="hint" style="text-align:center; margin-top:8px;">Saves the report to the database and gives you a short link — no need to send images or long text separately.</div>
+<div id="shareLinkBox" style="display:none; margin-top:12px;">
+<div class="share-card">
+<div class="share-card-top">
+<div class="share-card-mark"></div>
+<div>
+<div class="share-card-title" id="shareCardTitle">CRO Test Report</div>
+<div class="share-card-sub" id="shareCardSub">Ready to share</div>
+</div>
+</div>
+<div class="share-card-actions">
+<button class="btn btn-primary" id="copyLinkBtn">Copy link</button>
+<a class="btn btn-ghost" id="openLinkBtn" href="#" target="_blank" rel="noopener">Open</a>
+</div>
+</div>
+<input type="text" id="shareLinkInput" readonly class="visually-hidden" aria-hidden="true" tabindex="-1">
+<div class="hint" id="shareLinkWarn" style="display:none; margin-top:8px;"></div>
+</div>
+<button class="btn btn-ghost" id="printBtn">Export as PDF instead</button>
+<button class="btn btn-ghost" id="resetBtn">Clear all fields</button>
+</div>
+</div>
+
+<!-- ===================== PREVIEW PANEL ===================== -->
+<div class="preview-panel">
+<div class="page" id="reportPage">
+
+<div class="rpt-header rpt-card">
+<div>
+<div class="rpt-eyebrow" id="pClient">Client name</div>
+<div class="rpt-title" id="pTestName">Test name goes here</div>
+<span class="badge run" id="pBadge">Running</span>
+</div>
+<div class="rpt-meta">
+<div>Report date<br><b id="pDate">—</b></div>
+<div style="margin-top:8px;">Prepared by<br><b id="pPrepared">—</b></div>
+</div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 01 &middot; Hypothesis</div></div>
+<div class="rpt-card"><div class="rpt-body empty" id="pHypothesis">We believe that…</div></div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 02 &middot; Current situation</div></div>
+<div class="rpt-card"><div class="rpt-body empty" id="pSituation">Describe the problem this test addresses.</div></div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 03 &middot; Base vs. variant</div></div>
+<div class="split">
+<div class="split-card base">
+<div class="split-card-head"><span class="split-pill">Base &middot; Control</span></div>
+<div id="pBaseImgWrap"><div class="split-img-empty">No image added</div></div>
+<div class="split-card-body">
+<div class="split-card-desc empty" id="pBaseDesc">Base description will appear here.</div>
+<a href="#" class="figma-link" id="pBaseFigma" style="display:none;" target="_blank" rel="noopener">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+<span id="pBaseFigmaText">View in Figma</span>
+</a>
+</div>
+</div>
+<div class="split-card variant">
+<div class="split-card-head"><span class="split-pill">Variant &middot; New</span></div>
+<div id="pVariantImgWrap"><div class="split-img-empty">No image added</div></div>
+<div class="split-card-body">
+<div class="split-card-desc empty" id="pVariantDesc">Variant description will appear here.</div>
+<a href="#" class="figma-link" id="pVariantFigma" style="display:none;" target="_blank" rel="noopener">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+<span id="pVariantFigmaText">View in Figma</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 04 &middot; Results &amp; traffic</div></div>
+<div class="rpt-card">
+<table class="stat-table">
+<thead><tr><th>Variation</th><th>Visitors</th><th>Conversions</th><th>Conv. rate</th><th>Uplift</th></tr></thead>
+<tbody>
+<tr>
+<td class="stat-name"><span class="stat-swatch base"></span>Base</td>
+<td class="mono" id="tBaseVisitors">—</td>
+<td class="mono" id="tBaseConversions">—</td>
+<td class="mono" id="tBaseRate">—</td>
+<td class="mono">—</td>
+</tr>
+<tr>
+<td class="stat-name"><span class="stat-swatch variant"></span>Variant</td>
+<td class="mono" id="tVariantVisitors">—</td>
+<td class="mono" id="tVariantConversions">—</td>
+<td class="mono" id="tVariantRate">—</td>
+<td class="mono stat-rate" id="tUplift">—</td>
+</tr>
+</tbody>
+</table>
+<div class="results-shot-wrap" id="pResultsImgWrap">
+<div class="results-shot-empty">No results screenshot added</div>
+</div>
+</div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 05 &middot; Insights &amp; outcomes</div></div>
+<div class="rpt-card"><div class="rpt-body empty" id="pInsights">What the results tell us and what it means for the client's goals.</div></div>
+</div>
+
+<div class="rpt-section">
+<div class="rpt-section-head"><div class="rpt-label">Section 06 &middot; Next test</div></div>
+<div class="rpt-card">
+<div class="next-sub">
+<div class="next-sub-label">Hypothesis</div>
+<div class="rpt-body empty" id="pNextTestHypothesis">We believe that…</div>
+</div>
+<div class="next-sub">
+<div class="next-sub-label">Current situation</div>
+<div class="rpt-body empty" id="pNextTestSituation">Describe the problem this next test addresses.</div>
+</div>
+<div class="next-test-imgs">
+<div id="pNextImg1Wrap"><div class="split-img-empty">No image added</div></div>
+<div id="pNextImg2Wrap"><div class="split-img-empty">No image added</div></div>
+</div>
+<a href="#" class="figma-link" id="pNextTestFigma" style="display:none;" target="_blank" rel="noopener">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M8 24c2.2 0 4-1.8 4-4v-4H8c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#A259FF"/><path d="M4 4c0-2.2 1.8-4 4-4h4v8H8c-2.2 0-4-1.8-4-4z" fill="#F24E1E"/><path d="M12 0h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#1ABCFE"/></svg>
+<span id="pNextTestFigmaText">View in Figma</span>
+</a>
+</div>
+</div>
+
+<div class="rpt-footer">
+<span id="pFooterClient">CRO Test Report</span>
+<span id="pFooterDate">—</span>
+</div>
+
+</div>
+</div>
+</div>
+
+<div id="lightbox"><img src="" alt=""></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ---------- Supabase setup ----------
+const SUPABASE_URL = 'https://biksnrysplqtvfvqqyep.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_jq8SHZ7O1DZMfVJaiGuADQ_0WHf6q1O';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const IMAGE_BUCKET = 'report-images';
+
+const state = { files: {} };
+
+// ---------- Helpers ----------
+function fmtDate(str){
+  if(!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+function parseNum(str){
+  const n = parseFloat(String(str).replace(/,/g,''));
+  return isNaN(n) ? null : n;
+}
+function fmtNum(n){ return Number(n).toLocaleString('en-US'); }
+function fmtPct(n){ return n.toFixed(2) + '%'; }
+
+function setText(id, val, fallback){
+  const el = $(id);
+  el.textContent = val || fallback;
+  el.classList.toggle('empty', !val);
+}
+function syncText(inputId, previewId, fallback){
+  const input = $(inputId);
+  const update = () => setText(previewId, input.value.trim(), fallback);
+  input.addEventListener('input', update);
+  update();
+}
+function renderFigma(linkId, url){
+  const link = $(linkId);
+  if(url){ link.href = url; link.style.display = 'inline-flex'; }
+  else { link.style.display = 'none'; }
+}
+function syncFigma(inputId, linkId){
+  const input = $(inputId);
+  const update = () => renderFigma(linkId, input.value.trim());
+  input.addEventListener('input', update);
+  update();
+}
+
+const IMAGE_MAP = {
+  base:    { wrapId:'pBaseImgWrap',    cls:'split-img',  emptyCls:'split-img-empty',   emptyLabel:'No image added' },
+  variant: { wrapId:'pVariantImgWrap', cls:'split-img',  emptyCls:'split-img-empty',   emptyLabel:'No image added' },
+  results: { wrapId:'pResultsImgWrap', cls:'results-img',emptyCls:'results-shot-empty',emptyLabel:'No results screenshot added' },
+  next1:   { wrapId:'pNextImg1Wrap',   cls:'',           emptyCls:'split-img-empty',   emptyLabel:'No image added' },
+  next2:   { wrapId:'pNextImg2Wrap',   cls:'',           emptyCls:'split-img-empty',   emptyLabel:'No image added' }
+};
+function renderPreviewImage(key, url){
+  const cfg = IMAGE_MAP[key];
+  const wrap = $(cfg.wrapId);
+  if(url){
+    wrap.innerHTML = `<img src="${url}" class="${cfg.cls}" alt="">`;
+  } else {
+    wrap.innerHTML = `<div class="${cfg.emptyCls}">${cfg.emptyLabel}</div>`;
+  }
+}
+
+// ---------- Text field syncing ----------
+syncText('clientName','pClient','Client name');
+syncText('testName','pTestName','Test name goes here');
+syncText('hypothesis','pHypothesis','We believe that…');
+syncText('situation','pSituation','Describe the problem this test addresses.');
+syncText('baseDesc','pBaseDesc','Base description will appear here.');
+syncText('variantDesc','pVariantDesc','Variant description will appear here.');
+syncText('insights','pInsights',"What the results tell us and what it means for the client's goals.");
+syncText('nextTestHypothesis','pNextTestHypothesis','We believe that…');
+syncText('nextTestSituation','pNextTestSituation','Describe the problem this next test addresses.');
+syncFigma('baseFigma','pBaseFigma');
+syncFigma('variantFigma','pVariantFigma');
+syncFigma('nextTestFigma','pNextTestFigma');
+
+// ---------- Date ----------
+const today = new Date();
+$('reportDate').value = today.toISOString().slice(0,10);
+function refreshDate(){
+  const f = fmtDate($('reportDate').value);
+  $('pDate').textContent = f;
+  $('pFooterDate').textContent = f;
+}
+$('reportDate').addEventListener('input', refreshDate);
+refreshDate();
+
+// ---------- Prepared by / client footer ----------
+$('preparedBy').addEventListener('input', () => {
+  $('pPrepared').textContent = $('preparedBy').value.trim() || '—';
+});
+$('pPrepared').textContent = '—';
+
+$('clientName').addEventListener('input', () => {
+  $('pFooterClient').textContent = ($('clientName').value.trim() || 'CRO Test Report') + ' — Confidential';
+});
+$('pFooterClient').textContent = 'CRO Test Report';
+
+// ---------- Traffic calculation ----------
+function updateTraffic(){
+  const bv = parseNum($('baseVisitors').value);
+  const bc = parseNum($('baseConversions').value);
+  const vv = parseNum($('variantVisitors').value);
+  const vc = parseNum($('variantConversions').value);
+
+  $('tBaseVisitors').textContent = bv !== null ? fmtNum(bv) : '—';
+  $('tBaseConversions').textContent = bc !== null ? fmtNum(bc) : '—';
+  $('tVariantVisitors').textContent = vv !== null ? fmtNum(vv) : '—';
+  $('tVariantConversions').textContent = vc !== null ? fmtNum(vc) : '—';
+
+  let baseRate = null, variantRate = null;
+  if(bv && bc !== null){ baseRate = (bc / bv) * 100; $('tBaseRate').textContent = fmtPct(baseRate); }
+  else { $('tBaseRate').textContent = '—'; }
+  if(vv && vc !== null){ variantRate = (vc / vv) * 100; $('tVariantRate').textContent = fmtPct(variantRate); }
+  else { $('tVariantRate').textContent = '—'; }
+
+  const upliftEl = $('tUplift');
+  if(baseRate !== null && baseRate !== 0 && variantRate !== null){
+    const uplift = ((variantRate - baseRate) / baseRate) * 100;
+    upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    upliftEl.classList.remove('up','down');
+    upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+  } else {
+    upliftEl.textContent = '—';
+    upliftEl.classList.remove('up','down');
+  }
+}
+['baseVisitors','baseConversions','variantVisitors','variantConversions'].forEach(id => {
+  $(id).addEventListener('input', updateTraffic);
+});
+updateTraffic();
+
+// ---------- Status pills ----------
+const statusMeta = {
+  win:  { label:'Winning Variant', badgeClass:'win' },
+  lose: { label:'Losing Variant',  badgeClass:'lose' },
+  run:  { label:'Running',         badgeClass:'run' },
+  inconclusive: { label:'Inconclusive', badgeClass:'inconclusive' }
+};
+let currentStatus = 'run';
+document.querySelectorAll('.status-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentStatus = pill.dataset.status;
+    const meta = statusMeta[currentStatus];
+    const badge = $('pBadge');
+    badge.className = 'badge ' + meta.badgeClass;
+    badge.textContent = meta.label;
+  });
+});
+
+// ---------- Image uploads ----------
+function setupUpload(inputId, wrapId, clearId, stateKey){
+  const input = $(inputId), wrap = $(wrapId), clearBtn = $(clearId);
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    if(!file) return;
+    state.files[stateKey] = file;
+    const url = URL.createObjectURL(file);
+    let img = wrap.querySelector('img');
+    if(!img){ img = document.createElement('img'); wrap.insertBefore(img, wrap.firstChild); }
+    img.src = url;
+    wrap.classList.add('has-image');
+    clearBtn.style.display = 'block';
+    renderPreviewImage(stateKey, url);
+  });
+  clearBtn.addEventListener('click', () => {
+    state.files[stateKey] = null;
+    input.value = '';
+    const img = wrap.querySelector('img');
+    if(img) img.remove();
+    wrap.classList.remove('has-image');
+    clearBtn.style.display = 'none';
+    renderPreviewImage(stateKey, null);
+  });
+}
+setupUpload('baseImage','baseUploadWrap','baseClear','base');
+setupUpload('variantImage','variantUploadWrap','variantClear','variant');
+setupUpload('resultsImage','resultsUploadWrap','resultsClear','results');
+setupUpload('nextImage1','nextImage1Wrap','nextImage1Clear','next1');
+setupUpload('nextImage2','nextImage2Wrap','nextImage2Clear','next2');
+
+// ---------- Lightbox ----------
+const lightbox = $('lightbox');
+const lightboxImg = lightbox.querySelector('img');
+$('reportPage').addEventListener('click', e => {
+  const t = e.target;
+  if(t.tagName === 'IMG' && (t.classList.contains('split-img') || t.classList.contains('results-img') || t.closest('.next-test-imgs'))){
+    lightboxImg.src = t.src;
+    lightbox.classList.add('open');
+  }
+});
+lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+
+// ---------- Print / reset ----------
+$('printBtn').addEventListener('click', () => window.print());
+$('resetBtn').addEventListener('click', () => {
+  if(confirm('Clear all fields? This cannot be undone.')) location.reload();
+});
+
+// ---------- Share (save to Supabase) ----------
+async function uploadImageIfNeeded(key){
+  const file = state.files[key];
+  if(!file) return null;
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${key}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { error } = await sb.storage.from(IMAGE_BUCKET).upload(path, file, { upsert:false });
+  if(error) throw error;
+  const { data: pub } = sb.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+  return pub.publicUrl;
+}
+
+$('shareBtn').addEventListener('click', async () => {
+  const btn = $('shareBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try{
+    const [baseImgUrl, variantImgUrl, resultsImgUrl, next1Url, next2Url] = await Promise.all([
+      uploadImageIfNeeded('base'),
+      uploadImageIfNeeded('variant'),
+      uploadImageIfNeeded('results'),
+      uploadImageIfNeeded('next1'),
+      uploadImageIfNeeded('next2')
+    ]);
+
+    const row = {
+      client_name: $('clientName').value.trim(),
+      test_name: $('testName').value.trim(),
+      report_date: $('reportDate').value || null,
+      status: currentStatus,
+      prepared_by: $('preparedBy').value.trim(),
+      hypothesis: $('hypothesis').value.trim(),
+      situation: $('situation').value.trim(),
+      base_desc: $('baseDesc').value.trim(),
+      base_figma: $('baseFigma').value.trim(),
+      base_image_url: baseImgUrl,
+      variant_desc: $('variantDesc').value.trim(),
+      variant_figma: $('variantFigma').value.trim(),
+      variant_image_url: variantImgUrl,
+      base_visitors: parseNum($('baseVisitors').value),
+      base_conversions: parseNum($('baseConversions').value),
+      variant_visitors: parseNum($('variantVisitors').value),
+      variant_conversions: parseNum($('variantConversions').value),
+      results_image_url: resultsImgUrl,
+      insights: $('insights').value.trim(),
+      next_test_hypothesis: $('nextTestHypothesis').value.trim(),
+      next_test_situation: $('nextTestSituation').value.trim(),
+      next_test_figma: $('nextTestFigma').value.trim(),
+      next_image1_url: next1Url,
+      next_image2_url: next2Url
+    };
+
+    const { data, error } = await sb.from('reports').insert(row).select('id').single();
+    if(error) throw error;
+
+    const link = `${location.origin}${location.pathname}?id=${data.id}`;
+    $('shareLinkInput').value = link;
+    $('shareLinkBox').style.display = 'block';
+    $('openLinkBtn').href = link;
+    $('shareCardTitle').textContent = $('testName').value.trim() || 'CRO Test Report';
+    $('shareCardSub').textContent = link;
+    $('shareLinkWarn').style.display = 'none';
+  } catch(err){
+    console.error(err);
+    alert('Something went wrong generating the link: ' + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
+
+$('copyLinkBtn').addEventListener('click', () => {
+  const input = $('shareLinkInput');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = $('copyLinkBtn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+});
+
+// ---------- View mode: load report by id ----------
+async function loadReportById(id){
+  document.body.classList.add('view-mode');
+  const note = document.createElement('div');
+  note.className = 'loading-note';
+  note.textContent = 'Loading report…';
+  $('reportPage').insertAdjacentElement('beforebegin', note);
+
+  const { data, error } = await sb.from('reports').select('*').eq('id', id).single();
+  note.remove();
+
+  if(error || !data){
+    const err = document.createElement('div');
+    err.className = 'view-error';
+    err.textContent = 'This report link is invalid or has been removed.';
+    $('reportPage').insertAdjacentElement('beforebegin', err);
+    return;
+  }
+
+  setText('pClient', data.client_name, 'Client name');
+  setText('pTestName', data.test_name, 'Test name goes here');
+  $('pDate').textContent = fmtDate(data.report_date);
+  $('pFooterDate').textContent = fmtDate(data.report_date);
+  $('pPrepared').textContent = data.prepared_by || '—';
+  $('pFooterClient').textContent = (data.client_name || 'CRO Test Report') + ' — Confidential';
+
+  const meta = statusMeta[data.status] || statusMeta.run;
+  const badge = $('pBadge');
+  badge.className = 'badge ' + meta.badgeClass;
+  badge.textContent = meta.label;
+
+  setText('pHypothesis', data.hypothesis, 'We believe that…');
+  setText('pSituation', data.situation, 'Describe the problem this test addresses.');
+  setText('pBaseDesc', data.base_desc, 'Base description will appear here.');
+  setText('pVariantDesc', data.variant_desc, 'Variant description will appear here.');
+  setText('pInsights', data.insights, "What the results tell us and what it means for the client's goals.");
+  setText('pNextTestHypothesis', data.next_test_hypothesis, 'We believe that…');
+  setText('pNextTestSituation', data.next_test_situation, 'Describe the problem this next test addresses.');
+
+  renderFigma('pBaseFigma', data.base_figma);
+  renderFigma('pVariantFigma', data.variant_figma);
+  renderFigma('pNextTestFigma', data.next_test_figma);
+
+  renderPreviewImage('base', data.base_image_url);
+  renderPreviewImage('variant', data.variant_image_url);
+  renderPreviewImage('results', data.results_image_url);
+  renderPreviewImage('next1', data.next_image1_url);
+  renderPreviewImage('next2', data.next_image2_url);
+
+  $('tBaseVisitors').textContent = data.base_visitors != null ? fmtNum(data.base_visitors) : '—';
+  $('tBaseConversions').textContent = data.base_conversions != null ? fmtNum(data.base_conversions) : '—';
+  $('tVariantVisitors').textContent = data.variant_visitors != null ? fmtNum(data.variant_visitors) : '—';
+  $('tVariantConversions').textContent = data.variant_conversions != null ? fmtNum(data.variant_conversions) : '—';
+
+  let baseRate = null, variantRate = null;
+  if(data.base_visitors && data.base_conversions != null){
+    baseRate = (data.base_conversions / data.base_visitors) * 100;
+    $('tBaseRate').textContent = fmtPct(baseRate);
+  }
+  if(data.variant_visitors && data.variant_conversions != null){
+    variantRate = (data.variant_conversions / data.variant_visitors) * 100;
+    $('tVariantRate').textContent = fmtPct(variantRate);
+  }
+  const upliftEl = $('tUplift');
+  if(baseRate !== null && baseRate !== 0 && variantRate !== null){
+    const uplift = ((variantRate - baseRate) / baseRate) * 100;
+    upliftEl.textContent = (uplift >= 0 ? '+' : '') + uplift.toFixed(2) + '%';
+    upliftEl.classList.add(uplift >= 0 ? 'up' : 'down');
+  }
+
+  document.title = (data.test_name || 'CRO Test Report') + ' · CRO Test Report';
+}
+
+const params = new URLSearchParams(location.search);
+const reportId = params.get('id');
+if(reportId){
+  loadReportById(reportId);
+}
+</script>
+</body>
+</html>
